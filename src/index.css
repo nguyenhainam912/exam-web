@@ -1,0 +1,46 @@
+*{
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+.ant-table-expanded-row-fixed{
+  padding: 0!important;
+}
+.ant-menu-light.ant-menu-root.ant-menu-vertical,
+.ant-menu-light.ant-menu-root.ant-menu-inline{
+  border-inline-end: none!important;
+}
+.card-main .ant-card-body{
+  padding: 10px !important;
+}
+.ant-drawer-body{
+  padding: 0!important;
+}
+.ant-card-body{
+  padding-bottom: 0!important;
+}
+.ant-layout-sider-trigger {
+  background-color: #fff!important;
+}
+.ant-page-header-no-children {
+  display: none !important;
+}
+.ant-menu-item.ant-menu-item-only-child{
+  padding-left: 32px!important;
+}
+.ant-menu-item, .ant-menu-submenu-title{
+  padding-left: 16px!important;
+}
+
+.sider-trigger-custom {
+  background-color: white;
+  border-top: 1px solid #e8e8e8; 
+  text-align: right; 
+}
+.sider-trigger-custom span {
+  font-size: 16px;
+  padding-right: 18px;
+}
+.ant-dropdown-menu-item{
+  min-width: 160px;
+}
