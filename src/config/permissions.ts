@@ -14,7 +14,7 @@ export const ALL_PERMISSIONS = {
     UPDATE: { method: "PUT", apiPath: "/rbac/role/:id", module: "RBAC" },
     DELETE: { method: "DELETE", apiPath: "/rbac/role/:id", module: "RBAC" },
     GET_PAGINATE: { method: "GET", apiPath: "/rbac/roles/pageable", module: "RBAC" },
-    GET_BY_ID: { method: "GET", apiPath: "/rbac/role/:id", module: "RBAC" },
+    GET_BY_ID: { method: "GET", apiPath: "/rbac/roles/:id", module: "RBAC" },
   },
 
   PERMISSIONS: {
@@ -22,7 +22,7 @@ export const ALL_PERMISSIONS = {
     UPDATE: { method: "PUT", apiPath: "/rbac/permission/:id", module: "RBAC" },
     DELETE: { method: "DELETE", apiPath: "/rbac/permission/:id", module: "RBAC" },
     GET_PAGINATE: { method: "GET", apiPath: "/rbac/permissions/pageable", module: "RBAC" },
-    GET_BY_ID: { method: "GET", apiPath: "/rbac/permission/:id", module: "RBAC" },
+    GET_BY_ID: { method: "GET", apiPath: "/rbac/permissions/:id", module: "RBAC" },
     CHECK_USER_PERMISSION: { method: "POST", apiPath: "/rbac/check-permission", module: "RBAC" },
     ASSIGN_ROLE: { method: "POST", apiPath: "/rbac/assign-role", module: "RBAC" },
   },

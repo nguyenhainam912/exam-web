@@ -1,48 +1,43 @@
 import { create } from 'zustand';
-import { BaseFormStore } from '../utils/interfaces';
+// import { BaseFormStore } from '../utils/interfaces';
+// import { UserStore } from '@/services/user/typing';
 
-
-import type { UserStore } from '@/services/user/typing';
-
-
-const useUserStore = create<BaseFormStore & UserStore>((set, get) => ({
-  
+const useUserStore = create<any>((set, get) => ({
   itemList: [],
-  setItemList: (itemList) => set({ itemList }),
+  setItemList: (itemList: any[]) => set({ itemList }),
 
-  loading: true,
-  setLoading: (loading) => set({ loading }),
+  loading: false,
+  setLoading: (loading: boolean) => set({ loading }),
 
   total: 0,
-  setTotal: (total) => set({ total }),
+  setTotal: (total: number) => set({ total }),
 
   page: 1,
-  setPage: (page) => set({ page }),
+  setPage: (page: number) => set({ page }),
 
   limit: 10,
-  setLimit: (limit) => set({ limit }),
+  setLimit: (limit: number) => set({ limit }),
 
   cond: {},
-  setCondition: (cond) => set({ cond }),
+  setCondition: (cond: any) => set({ cond }),
 
   filterInfo: {},
-  setFilterInfo: (filterInfo) => set({ filterInfo }),
+  setFilterInfo: (filterInfo: any) => set({ filterInfo }),
 
   visibleForm: false,
-  setVisibleForm: (visibleForm) => set({ visibleForm }),
+  setVisibleForm: (visibleForm: boolean) => set({ visibleForm }),
 
   edit: false,
-  setEdit: (edit) => set({ edit }),
+  setEdit: (edit: boolean) => set({ edit }),
 
   view: false,
-  setView: (view) => set({ view }),
+  setView: (view: boolean) => set({ view }),
 
   isCreate: false,
-  setIsCreate: (isCreate) => set({ isCreate }),
-  
-  record: {} as any,
-  setRecord: (record) => set({ record}),
+  setIsCreate: (isCreate: boolean) => set({ isCreate }),
 
+  record: {} as any,
+  setRecord: (record: any) => set({ record }),
 }));
 
 export default useUserStore;

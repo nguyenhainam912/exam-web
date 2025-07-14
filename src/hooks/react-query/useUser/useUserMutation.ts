@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { MutationOptions } from '@/utils/interfaces';
+import { deleteUser } from '@/services/user/user';
 
 // export const usePostRoleToUserMutation = <T>({ onSuccess, onError }: MutationOptions<T>) => {
 //   const queryClient = useQueryClient();
@@ -64,4 +65,20 @@ import { MutationOptions } from '@/utils/interfaces';
 //     },
 //   });
 // }
+
+export const useDeleteUserMutation = <T>({ onSuccess, onError, params }: MutationOptions<T>) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return await deleteUser(id);
+    },
+    onSuccess: (data: T) => {
+      queryClient.invalidateQueries({ queryKey: ['user', params] });
+      onSuccess && onSuccess(data);
+    },
+    onError: (error) => {
+      onError && onError(error);
+    },
+  });
+};
 

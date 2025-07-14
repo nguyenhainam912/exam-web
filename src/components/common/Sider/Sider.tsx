@@ -71,7 +71,10 @@ const SiderComponent = ({children} : any) => {
           key: '7-3',
           label: <Link to={Pathname.SYSTEM_PERMISSION_MANAGEMENT}>Quản lý quyền hạn</Link>
         },
-        
+        {
+          key: '7-4',
+          label: <Link to={Pathname.SYSTEM_USER_MANAGEMENT}>Quản lý người dùng</Link>
+        },
       ] 
     },
   ]
@@ -86,6 +89,7 @@ const SiderComponent = ({children} : any) => {
     [Pathname.SYSTEM_ACCOUNT_MANAGEMENT]: '7-1',
     [Pathname.SYSTEM_ROLE_MANAGEMENT]: '7-2',
     [Pathname.SYSTEM_PERMISSION_MANAGEMENT]: '7-3',
+    [Pathname.SYSTEM_USER_MANAGEMENT]: '7-4',
   };
 
   

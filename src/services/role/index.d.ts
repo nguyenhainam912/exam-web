@@ -1,9 +1,10 @@
 export declare namespace Role {
   export interface Record {
-    id: string;
+    _id: string;
     name: string;
     description: string;
-    permissionModuleIds: string[];
+    isActive: boolean;
+    permissions: string[];
   }
 }
 

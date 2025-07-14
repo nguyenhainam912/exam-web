@@ -17,7 +17,12 @@ export const useUserQuery = (params: GetParams) => {
 
 export const useUserByIdQuery = (id: string) => {
   return useQuery({
-    queryKey: ['userById'],
-    queryFn: async() =>  await getUserById(id)
+    queryKey: ['userById', id],
+    queryFn: async() =>  
+    {
+      const response = await getUserById(id)
+      return response?.data ?? []
+    },
+    enabled: !!id,
   });
 };

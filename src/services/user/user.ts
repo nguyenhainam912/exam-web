@@ -48,3 +48,43 @@ export async function postUser(payload: any) {
     throw error
   }
 }
+
+/* VERIFY EMAIL */
+export async function verifyEmail(payload: { token: string }) {
+  try {
+    const response = await axiosInstance.post(`/auth/verify-email`, payload);
+    return response?.data
+  } catch (error) {
+    throw error
+  }
+}
+
+/* RESEND VERIFICATION EMAIL */
+export async function resendVerificationEmail(payload: { email: string }) {
+  try {
+    const response = await axiosInstance.post(`/auth/resend-verification`, payload);
+    return response?.data
+  } catch (error) {
+    throw error
+  }
+}
+
+/* SEND VERIFY EMAIL */
+export async function sendVerifyEmail(payload: { email: string; verifyUrl: string }) {
+  try {
+    const response = await axiosInstance.post(`/auth/send-verify-email`, payload);
+    return response?.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/** Xóa người dùng theo ID */
+export async function deleteUser(id: string) {
+  try {
+    const response = await axiosInstance.delete(`/user/${id}`);
+    return response?.data;
+  } catch (error) {
+    throw error;
+  }
+}

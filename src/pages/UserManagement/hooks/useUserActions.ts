@@ -1,38 +1,37 @@
-import { useState, useCallback, useEffect } from 'react';
-import type { Role } from '@/services/role/index.d';
+import { User } from '@/services/user/typing';
+import { useState, useCallback } from 'react';
 
-interface UseRoleActionsProps {
+interface UseUserActionsProps {
   setRecord: (record: any) => void;
   setView: (view: boolean) => void;
   setEdit: (edit: boolean) => void;
   setVisibleForm: (visible: boolean) => void;
 }
 
-export const useRoleActions = ({
+export const useUserActions = ({
   setRecord,
   setView,
   setEdit,
   setVisibleForm,
-}: UseRoleActionsProps) => {
-  const [selectedRoleId, setSelectedRoleId] = useState<string | undefined>(undefined);
+}: UseUserActionsProps) => {
+  const [selectedUserId, setSelectedUserId] = useState<string | undefined>(undefined);
 
-  // Mở form ngay khi bấm edit/view, không fetch và setRecord ở đây nữa
-  const handleView = useCallback((record: Role.Record) => {
-    setSelectedRoleId(record._id);
+  const handleView = useCallback((record: User.Profile) => {
+    setSelectedUserId(record.userId);
     setView(true);
     setEdit(false);
     setVisibleForm(true);
   }, [setView, setEdit, setVisibleForm]);
 
-  const handleEdit = useCallback((record: Role.Record) => {
-    setSelectedRoleId(record._id);
+  const handleEdit = useCallback((record: User.Profile) => {
+    setSelectedUserId(record.userId);
     setEdit(true);
     setView(false);
     setVisibleForm(true);
   }, [setEdit, setView, setVisibleForm]);
 
   const handleAdd = useCallback(() => {
-    setSelectedRoleId(undefined);
+    setSelectedUserId(undefined);
     setRecord({} as any);
     setEdit(false);
     setView(false);
@@ -40,7 +39,7 @@ export const useRoleActions = ({
   }, [setRecord, setEdit, setView, setVisibleForm]);
 
   const resetFormStates = useCallback(() => {
-    setSelectedRoleId(undefined);
+    setSelectedUserId(undefined);
     setEdit(false);
     setView(false);
     setRecord({} as any);
@@ -48,7 +47,8 @@ export const useRoleActions = ({
   }, [setEdit, setView, setRecord, setVisibleForm]);
 
   return {
-    selectedRoleId,
+    selectedUserId,
+    setSelectedUserId,
     handleView,
     handleEdit,
     handleAdd,

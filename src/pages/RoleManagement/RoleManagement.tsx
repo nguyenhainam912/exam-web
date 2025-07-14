@@ -2,7 +2,7 @@ import { message } from 'antd';
 import { useEffect, useMemo, useCallback } from 'react';
 import TableBase from '@/components/common/Table';
 import type { IColumn } from '@/utils/interfaces';
-import { useRoleQuery } from '@/hooks/react-query/useRole/useRoleQuery';
+import { useRoleByIdQuery, useRoleQuery } from '@/hooks/react-query/useRole/useRoleQuery';
 import useRoleStore from '@/stores/role';
 import { useDeleteRoleMutation } from '@/hooks/react-query/useRole/useRoleMutation';
 import { Role } from '@/services/role/index.d';
@@ -44,6 +44,8 @@ const RoleManagement = () => {
     resetFormStates,
   } = useRoleActions({ setRecord, setView, setEdit, setVisibleForm });
   const { data, isLoading } = useRoleQuery({ page, limit, cond });
+  const { data: roleDetail } = useRoleByIdQuery(selectedRoleId);
+  
   const { mutate: deleteRole } = useDeleteRoleMutation({
     onSuccess: () => message.success('Xóa thành công!'),
     onError: () => message.error('Có lỗi xảy ra khi xóa!'),
@@ -117,6 +119,14 @@ const RoleManagement = () => {
     if (view) return "Xem chi tiết vai trò";
     return "Thêm vai trò";
   }, [edit, view]);
+
+  // Khi có data roleDetail thì setRecord (giống permission)
+  useEffect(() => {
+    if (roleDetail && selectedRoleId) {
+      console.log("roleDetail",roleDetail)
+      setRecord({ ...roleDetail });
+    }
+  }, [roleDetail, selectedRoleId, setRecord]);
   return (
     <Access permission={ALL_PERMISSIONS.ROLES.GET_PAGINATE} hideChildren={true}>
       <TableBase
@@ -131,7 +141,7 @@ const RoleManagement = () => {
         dataSource={data || []}
         onCloseForm={resetFormStates}
         titleForm={titleForm}
-        rowKey="id"
+        rowKey="_id"
       >
         <TableHeader
           title="Quản lý vai trò"

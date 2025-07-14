@@ -1,107 +1,160 @@
-.container {
+.login-container {
   display: flex;
   flex-direction: column;
   height: 100vh;
   overflow: auto;
-  background: #f0f2f5; 
+  background: #f0f2f5;
 }
 
-.content {
-  flex: 1;
-  padding: 32px 0;
-}
-
+/* Background khi màn hình đủ rộng */
 @media (min-width: 768px) {
-  .container {
+  .login-container {
     background-image: url('https://gw.alipayobjects.com/zos/rmsportal/TVYTbAXWheQpRcWDaDMu.svg');
     background-repeat: no-repeat;
     background-position: center 110px;
     background-size: 100%;
   }
-
-  .content {
-    padding: 32px 0 24px;
-  }
 }
 
-.top {
+.login-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 0;
+}
+
+.login-box {
+  /* Hiệu ứng kính đơn giản không dùng backdrop-filter */
+  background: rgba(255, 255, 255, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 20px;
+  padding: 48px 40px;
+  box-shadow: 
+    0 8px 32px rgba(31, 38, 135, 0.37),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+  width: 100%;
+  max-width: 500px;
   text-align: center;
 }
 
-.header {
+.login-top {
+  text-align: center;
+  padding: 32px 24px 0;
+}
+
+.login-header {
   height: 44px;
   line-height: 44px;
-  display: flex;
-  justify-content: center;
+  margin-bottom: 24px;
 }
 
-.header a {
-  text-decoration: none;
-}
-
-.logo {
+.login-logo {
   height: 44px;
   margin-right: 16px;
   vertical-align: top;
 }
 
-.title {
+.login-title {
   position: relative;
   top: 2px;
-  color: rgba(0, 0, 0, 0.85); 
+  color: rgba(0, 0, 0, 0.85);
   font-weight: 600;
   font-size: 33px;
-  font-family: Avenir, 'Helvetica Neue', Arial, Helvetica, sans-serif;
+  margin: 0;
+  margin-bottom: 8px;
 }
 
-.desc {
+.login-top > div:nth-child(2) {
+  margin-bottom: 12px;
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.login-desc {
   margin-top: 12px;
   margin-bottom: 40px;
-  color: rgba(0, 0, 0, 0.45); 
-  font-size: 14px; 
+  color: rgba(0, 0, 0, 0.45);
+  font-size: 14px;
 }
 
-.main {
-  width: 328px;
-  margin: 0 auto;
+.login-main {
+  width: 100%;
+  padding: 24px;
 }
 
-@media screen and (max-width: 576px) { 
-  .main {
-    width: 95%;
-    max-width: 328px;
-  }
+.login-prefixIcon {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 14px;
 }
 
-.main .ant-tabs-nav-list { 
-  margin: auto;
-  font-size: 16px;
+.login-form-item-label > label {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
 }
 
-.main .icon {
-  margin-left: 16px;
-  color: rgba(0, 0, 0, 0.2);
-  font-size: 24px;
-  vertical-align: middle;
-  cursor: pointer;
-  transition: color 0.3s;
+.login-input-affix-wrapper {
+  border-radius: 6px;
+  /* Hiệu ứng kính cho input không dùng backdrop-filter */
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
 }
 
-.main .icon:hover {
-  color: #1890ff;
+.login-btn {
+  border-radius: 6px;
+  height: 40px;
+  font-weight: 500;
 }
 
-.main .other {
-  margin-top: 24px;
-  line-height: 22px;
-  text-align: left;
+.login-form-item {
+  margin-bottom: 16px;
 }
 
-.main .other .register {
-  float: right;
+.login-form-item-label {
+  padding-bottom: 4px;
 }
 
-.main .prefixIcon {
-  color: #1890ff; 
-  font-size: 14px; 
+.login-form-item-label > label {
+  height: 32px;
+  line-height: 32px;
+}
+
+.login-input {
+  height: 40px;
+  border-radius: 6px;
+  /* Hiệu ứng kính cho input không dùng backdrop-filter */
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+.login-input-password {
+  height: 40px;
+  border-radius: 6px;
+  /* Hiệu ứng kính cho input password không dùng backdrop-filter */
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+.login-select-selector {
+  height: 40px !important;
+  border-radius: 6px !important;
+  /* Hiệu ứng kính cho select không dùng backdrop-filter */
+  background: rgba(255, 255, 255, 0.5) !important;
+  border: 1px solid rgba(255, 255, 255, 0.6) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6) !important;
+}
+
+.login-select-selection-item {
+  line-height: 38px !important;
+}
+
+/* Footer luôn dưới */
+footer {
+  text-align: center;
+  padding: 12px;
+  color: rgba(0, 0, 0, 0.45);
 }

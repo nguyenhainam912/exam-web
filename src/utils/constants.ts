@@ -8,6 +8,7 @@ export enum Pathname {
   SYSTEM_EXAM_TYPES_MANAGEMENT = 'system/exam-types-management',
   SYSTEM_SUBJECTS_MANAGEMENT = 'system/subjects-management', // Quản lý môn học
   SYSTEM_EXAMS_MANAGEMENT = 'system/exams-management', // Quản lý đề thi
+  SYSTEM_USER_MANAGEMENT = 'system/user-management', // Quản lý người dùng
 }
 
 export const METHOD_OPTIONS = [

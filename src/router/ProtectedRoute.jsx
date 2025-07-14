@@ -6,6 +6,8 @@ import { Navigate, Outlet } from 'react-router-dom';
 const ProtectedRoute = () => {
   const loginPath = '/user/login';
   const autoLoginPath = '/user/autologin';
+  const registerPath = '/user/register';
+  const verifyEmailPath = '/user/verify-email';
   const pathname = window.location.pathname;
 
   const { currentUser, fetchUserInfo, loading} = useAppStore();
@@ -23,7 +25,9 @@ const ProtectedRoute = () => {
   if (!currentUser) {
     if (
       pathname !== loginPath &&
-      pathname !== autoLoginPath
+      pathname !== autoLoginPath &&
+      pathname !== registerPath &&
+      pathname !== verifyEmailPath
     ) {
       return <Navigate to={loginPath} replace />;
     }

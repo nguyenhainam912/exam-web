@@ -1,0 +1,84 @@
+.verify-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: auto;
+  background: #f0f2f5;
+}
+
+.verify-content {
+  flex: 1;
+  padding: 32px 0;
+}
+
+.verify-box {
+  width: 500px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+}
+
+.verify-top {
+  text-align: center;
+  padding: 32px 24px 0;
+}
+
+.verify-header {
+  height: 44px;
+  line-height: 44px;
+  margin-bottom: 24px;
+}
+
+.verify-logo {
+  height: 44px;
+  margin-right: 16px;
+  vertical-align: top;
+}
+
+.verify-title {
+  position: relative;
+  top: 2px;
+  color: rgba(0, 0, 0, 0.85);
+  font-weight: 600;
+  font-size: 33px;
+  margin: 0;
+}
+
+.verify-main {
+  padding: 24px;
+}
+
+.verify-result {
+  padding: 24px 0;
+}
+
+.verify-result-icon {
+  margin-bottom: 16px;
+}
+
+.verify-result-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.verify-result-subtitle {
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.65);
+  margin-bottom: 24px;
+}
+
+.verify-result-extra {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.verify-btn {
+  border-radius: 6px;
+  height: 40px;
+  font-weight: 500;
+  min-width: 120px;
+} 

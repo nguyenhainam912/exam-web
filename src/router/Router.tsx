@@ -6,12 +6,15 @@ import ProtectedRoute from './ProtectedRoute'
 import NoFoundPage from '@/pages/404'
 import Account from '@/pages/Account/Account'
 import Login from '@/pages/user/Login/Login'
+import Register from '@/pages/user/Register/Register'
+import VerifyEmail from '@/pages/user/VerifyEmail/VerifyEmail'
 import PermissionManagement from '@/pages/PermissionManagement/PermissionManagement'
 import RoleManagement from '@/pages/RoleManagement/RoleManagement';
 import GradeLevelsManagement from '@/pages/GradeLevelsManagement/GradeLevelsManagement';
 import ExamTypesManagement from '@/pages/ExamTypesManagement/ExamTypesManagement';
 import SubjectsManagement from '@/pages/SubjectsManagement/SubjectsManagement';
 import ExamManagement from '@/pages/ExamManagement/ExamManagement';
+import UserManagement from '@/pages/UserManagement/UserManagement';
 
 const RouterComponent = () => {
   return (
@@ -19,6 +22,8 @@ const RouterComponent = () => {
       <Routes>
         <Route path='user' >
           <Route path='login' element={<Login />} />
+          <Route path='register' element={<Register />} />
+          <Route path='verify-email' element={<VerifyEmail />} />
         </Route>
         <Route element={<ProtectedRoute />}>
           <Route path='/' element={<MainLayout > </MainLayout>} >
@@ -32,6 +37,7 @@ const RouterComponent = () => {
               <Route path='exam-types-management' element={<ExamTypesManagement />} />
               <Route path='subjects-management' element={<SubjectsManagement />} />
               <Route path='exams-management' element={<ExamManagement />} />
+              <Route path='user-management' element={<UserManagement />} />
             </Route>
             <Route path='/account' element={<Account />} />
             <Route path='/*' element={<NoFoundPage />} />

@@ -1,0 +1,122 @@
+.register-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: auto;
+  background: #f0f2f5;
+}
+
+/* Background khi màn hình đủ rộng */
+@media (min-width: 768px) {
+  .register-container {
+    background-image: url('https://gw.alipayobjects.com/zos/rmsportal/TVYTbAXWheQpRcWDaDMu.svg');
+    background-repeat: no-repeat;
+    background-position: center 110px;
+    background-size: 100%;
+  }
+}
+
+.register-content {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 32px 0;
+}
+
+.register-box {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 20px;
+  padding: 48px 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  max-width: 500px;
+  text-align: center;
+}
+
+.register-top {
+  text-align: center;
+  padding: 32px 24px 0;
+}
+
+.register-header {
+  height: 44px;
+  line-height: 44px;
+  margin-bottom: 24px;
+}
+
+.register-logo {
+  height: 44px;
+  margin-right: 16px;
+  vertical-align: top;
+}
+
+.register-title {
+  position: relative;
+  top: 2px;
+  color: rgba(0, 0, 0, 0.85);
+  font-weight: 600;
+  font-size: 33px;
+  margin: 0;
+  margin-bottom: 8px;
+}
+
+.register-main {
+  width: 100%;
+  padding: 24px;
+}
+
+.register-prefixIcon {
+  color: rgba(0, 0, 0, 0.25);
+  font-size: 14px;
+}
+
+.register-form-item-label > label {
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.85);
+}
+
+.register-input-affix-wrapper {
+  border-radius: 6px;
+}
+
+.register-btn {
+  border-radius: 6px;
+  height: 40px;
+  font-weight: 500;
+}
+
+.register-form-item {
+  margin-bottom: 16px;
+}
+
+.register-form-item-label {
+  padding-bottom: 4px;
+}
+
+.register-form-item-label > label {
+  height: 32px;
+  line-height: 32px;
+}
+
+.register-input {
+  height: 40px;
+  border-radius: 6px;
+}
+
+.register-input-password {
+  height: 40px;
+  border-radius: 6px;
+}
+
+.register-select-selector {
+  height: 40px !important;
+  border-radius: 6px !important;
+}
+
+.register-select-selection-item {
+  line-height: 38px !important;
+} 

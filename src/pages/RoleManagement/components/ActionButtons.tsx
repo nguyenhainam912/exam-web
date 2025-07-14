@@ -49,7 +49,7 @@ const ActionButtons = memo(({ record, onView, onEdit, onDelete }: ActionButtonsP
     <Access permission={ALL_PERMISSIONS.ROLES.DELETE} hideChildren={true}>
       <Popconfirm
         title="Bạn có chắc muốn xóa?"
-        onConfirm={() => onDelete(record.id)}
+        onConfirm={() => onDelete(record._id)}
         okText="Xóa"
         cancelText="Hủy"
       >

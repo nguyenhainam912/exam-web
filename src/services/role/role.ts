@@ -44,3 +44,12 @@ export async function delRole(id: string) {
   }
 }
 
+export async function getRoleById(id: string) {
+  try {
+    const response = await axiosInstance.get(`/rbac/role/${id}`);
+    return response?.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
