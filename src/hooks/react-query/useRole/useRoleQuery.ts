@@ -6,6 +6,7 @@ import { getRoleById } from '@/services/role/role';
 
 export const useRoleQuery = (params: GetParams) => {
   const { setTotal, setItemList } = useRoleStore()
+  console.log("params",params)
   return useQuery({
     queryKey: ['roles', params],
     queryFn: async() =>  {

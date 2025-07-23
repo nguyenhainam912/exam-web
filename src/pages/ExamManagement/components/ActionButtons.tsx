@@ -1,14 +1,16 @@
 import { Button, Popconfirm } from 'antd';
-import { DeleteOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, EyeOutlined, CheckOutlined } from '@ant-design/icons';
 import { memo } from 'react';
-import type { ExamRecord } from '@/stores/exam';
+import type { Exam } from '@/services/exam';
 import { ALL_PERMISSIONS } from '@/config/permissions';
 import Access from '@/components/share/access';
+import { usePutExamMutation } from '@/hooks/react-query/useExam/useExamMutation';
+import { message } from 'antd';
 
 interface ActionButtonsProps {
-  record: ExamRecord;
-  onView: (record: ExamRecord) => void;
-  onEdit: (record: ExamRecord) => void;
+  record: Exam.Record;
+  onView: (record: Exam.Record) => void;
+  onEdit: (record: Exam.Record) => void;
   onDelete: (id: string) => void;
 }
 
@@ -27,37 +29,82 @@ const BUTTON_STYLES = {
   },
 } as const;
 
-const ActionButtons = memo(({ record, onView, onEdit, onDelete }: ActionButtonsProps) => (
-  <>
-    <Access permission={ALL_PERMISSIONS.EXAMS?.GET_BY_ID} hideChildren={true}>
-      <Button
-        title="Xem chi tiết"
-        icon={<EyeOutlined />}
-        style={BUTTON_STYLES.view}
-        onClick={() => onView(record)}
-      />
-    </Access>
-    <Access permission={ALL_PERMISSIONS.EXAMS?.UPDATE} hideChildren={true}>
-      <Button
-        title="Chỉnh sửa"
-        icon={<EditOutlined />}
-        type="primary"
-        style={BUTTON_STYLES.edit}
-        onClick={() => onEdit(record)}
-      />
-    </Access>
-    <Access permission={ALL_PERMISSIONS.EXAMS?.DELETE} hideChildren={true}>
-      <Popconfirm
-        title="Bạn có chắc muốn xóa?"
-        onConfirm={() => onDelete(record._id!)}
-        okText="Xóa"
-        cancelText="Hủy"
-      >
-        <Button danger title="Xóa" icon={<DeleteOutlined />} />
-      </Popconfirm>
-    </Access>
-  </>
-));
+const ActionButtons = memo(({ record, onView, onEdit, onDelete }: ActionButtonsProps) => {
+  const { mutate: approveExam, isPending: isApproving } = usePutExamMutation({
+    onSuccess: () => message.success('Phê duyệt thành công!'),
+    onError: () => message.error('Có lỗi khi phê duyệt!'),
+    params: {},
+  });
+
+  const handleApprove = () => {
+    // Chuẩn hóa dữ liệu gửi lên
+    const {
+      _id,
+      createdAt,
+      updatedAt,
+      subjectId,
+      gradeLevelId,
+      examTypeId,
+      ...rest
+    } = record;
+    approveExam({
+      id: _id!,
+      body: {
+        subjectId: typeof subjectId === 'object' && subjectId?._id ? subjectId._id : subjectId,
+        gradeLevelId: typeof gradeLevelId === 'object' && gradeLevelId?._id ? gradeLevelId._id : gradeLevelId,
+        examTypeId: typeof examTypeId === 'object' && examTypeId?._id ? examTypeId._id : examTypeId,
+        status: 'ACTIVE',
+      },
+    });
+  };
+
+  return (
+    <>
+      {/* Nút phê duyệt nếu trạng thái là DRAFT */}
+      {(record.status === 'DRAFT' || record.status === 'ACTIVE') && (
+        <Button
+          type="primary"
+          style={
+            record.status === 'ACTIVE'
+              ? { marginRight: 8, background: '#52c41a', borderColor: '#52c41a' }
+              : { marginRight: 8, background: '#fff', borderColor: '#d9d9d9', color: '#52c41a' }
+          }
+          loading={isApproving}
+          onClick={record.status === 'DRAFT' ? handleApprove : undefined}
+          icon={<CheckOutlined style={{ color: record.status === 'ACTIVE' ? '#fff' : '#52c41a' }} />}
+          disabled={record.status === 'ACTIVE'}
+        />
+      )}
+      <Access permission={ALL_PERMISSIONS.EXAMS?.GET_BY_ID} hideChildren={true}>
+        <Button
+          title="Xem chi tiết"
+          icon={<EyeOutlined />}
+          style={BUTTON_STYLES.view}
+          onClick={() => onView(record)}
+        />
+      </Access>
+      <Access permission={ALL_PERMISSIONS.EXAMS?.UPDATE} hideChildren={true}>
+        <Button
+          title="Chỉnh sửa"
+          icon={<EditOutlined />}
+          type="primary"
+          style={BUTTON_STYLES.edit}
+          onClick={() => onEdit(record)}
+        />
+      </Access>
+      <Access permission={ALL_PERMISSIONS.EXAMS?.DELETE} hideChildren={true}>
+        <Popconfirm
+          title="Bạn có chắc muốn xóa?"
+          onConfirm={() => onDelete(record._id!)}
+          okText="Xóa"
+          cancelText="Hủy"
+        >
+          <Button danger title="Xóa" icon={<DeleteOutlined />} />
+        </Popconfirm>
+      </Access>
+    </>
+  );
+});
 
 ActionButtons.displayName = 'ActionButtons';
 

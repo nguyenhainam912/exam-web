@@ -1,17 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Form } from 'antd';
 
-interface UseRoleFiltersProps {
+interface UseChangeRequestFiltersProps {
   cond: any;
   setCondition: (cond: any) => void;
   page: number;
   limit: number;
 }
 
-export const useRoleFilters = ({ cond, setCondition, page, limit }: UseRoleFiltersProps) => {
+export const useChangeRequestFilters = ({ cond, setCondition, page, limit }: UseChangeRequestFiltersProps) => {
   const [textSearch, setTextSearch] = useState<string>('');
   const [filterForm] = Form.useForm();
   const [filterKey, setFilterKey] = useState(0);
+
+  useEffect(() => {
+    if (filterForm) {
+      filterForm.setFieldsValue({
+        // Thêm các trường filter nếu có
+      });
+    }
+  }, [cond, filterForm]);
 
   useEffect(() => {
     const timeoutId = setTimeout(() => {
@@ -29,7 +37,7 @@ export const useRoleFilters = ({ cond, setCondition, page, limit }: UseRoleFilte
   const handleFilter = useCallback(() => {
     const filterValues = filterForm.getFieldsValue();
     const newCond = { ...cond, ...filterValues };
-    if (filterValues.isActive === undefined) delete newCond.isActive;
+    // Xử lý xóa trường filter rỗng nếu cần
     setCondition(newCond);
   }, [filterForm, cond, setCondition]);
 

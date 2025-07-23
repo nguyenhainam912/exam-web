@@ -14,15 +14,6 @@ export const useUserFilters = ({ cond, setCondition, page, limit }: UseUserFilte
   const [filterKey, setFilterKey] = useState(0);
 
   useEffect(() => {
-    if (filterForm) {
-      filterForm.setFieldsValue({
-        fullName: cond.fullName !== undefined ? cond.fullName : undefined,
-        email: cond.email !== undefined ? cond.email : undefined,
-      });
-    }
-  }, [cond, filterForm]);
-
-  useEffect(() => {
     const timeoutId = setTimeout(() => {
       if (!textSearch || textSearch.trim() === '') {
         const newCond = { ...cond };

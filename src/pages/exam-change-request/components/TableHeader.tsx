@@ -1,8 +1,11 @@
 import { Button } from 'antd';
 import { PlusCircleOutlined } from '@ant-design/icons';
 import { memo } from 'react';
+import { FilterField } from '@/components/common/Filter/filter';
 import SearchInput from '@/components/common/Search/SearchInput';
 import FilterPopover from '@/components/common/Filter/FilterPopover';
+import { ALL_PERMISSIONS } from '@/config/permissions';
+import Access from '@/components/share/access';
 
 interface TableHeaderProps {
   title: string;
@@ -12,7 +15,7 @@ interface TableHeaderProps {
   onFilter: () => void;
   onClearFilter: () => void;
   filterKey: number;
-  filterFields: any[];
+  filterFields: FilterField[];
   onAdd: () => void;
   showAddButton?: boolean;
   addButtonText?: string;
@@ -47,7 +50,7 @@ const TableHeader = memo(({
         <SearchInput
           value={textSearch}
           onChange={onSearchChange}
-          placeholder="Nhập từ khoá tìm kiếm người dùng"
+          placeholder="Nhập từ khoá tìm kiếm đề thi"
           style={{ width: 220, marginTop: 5 }}
         />
       )}
@@ -60,16 +63,18 @@ const TableHeader = memo(({
           filterFields={filterFields}
         />
       )}
-      {/* {showAddButton && (
-        <Button 
-          type="primary" 
-          style={{ marginLeft: 5, marginTop: 5 }}
-          icon={<PlusCircleOutlined />}
-          onClick={onAdd}
-        >
-          {addButtonText}
-        </Button>
-      )} */}
+      {showAddButton && (
+        <Access permission={ALL_PERMISSIONS.EXAMS?.CREATE} hideChildren={true}>
+            <Button 
+              type="primary" 
+              style={{ marginLeft: 5, marginTop: 5 }}
+              icon={<PlusCircleOutlined />}
+              onClick={onAdd}
+            >
+              {addButtonText}
+            </Button>
+        </Access>
+      )}
     </div>
   </div>
 ));

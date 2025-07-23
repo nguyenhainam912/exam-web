@@ -8,8 +8,8 @@ import viVN from 'antd/lib/locale/vi_VN';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import './index.css';
-import SpinLoading from '@/components/common/SpinLoading/SpinLoading';
 import EmailVerificationNotice from '@/components/common/EmailVerificationNotice/EmailVerificationNotice';
+import GoogleLoginButton from '@/components/common/Button/GoogleLoginButton';
 
 
 const Login = () => {
@@ -123,6 +123,10 @@ const Login = () => {
                         Đăng nhập
                       </Button>
                     </Form.Item>
+
+                    <div style={{ textAlign: 'center', margin: '16px 0' }}>
+                      <GoogleLoginButton />
+                    </div>
 
                     <div style={{ textAlign: 'center', marginTop: 16 }}>
                       <span>Chưa có tài khoản? </span>

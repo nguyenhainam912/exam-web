@@ -13,16 +13,6 @@ export const usePermissionFilters = ({ cond, setCondition, page, limit }: UsePer
   const [filterForm] = Form.useForm();
   const [filterKey, setFilterKey] = useState(0);
 
-  // Sync form values with cond state
-  useEffect(() => {
-    if (filterForm) {
-      filterForm.setFieldsValue({
-        method: cond.method || undefined,
-        module: cond.module || undefined,
-      });
-    }
-  }, [cond, filterForm]);
-
   // Debounce search
   useEffect(() => {
     const timeoutId = setTimeout(() => {

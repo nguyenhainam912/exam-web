@@ -1,7 +1,6 @@
 import { ALL_PERMISSIONS } from '@/config/permissions';
 
 export enum Pathname {
-  SYSTEM_ACCOUNT_MANAGEMENT = 'system/account-management', 
   SYSTEM_ROLE_MANAGEMENT = 'system/role-management',
   SYSTEM_PERMISSION_MANAGEMENT = 'system/permission-management', // Quản lý permission
   SYSTEM_GRADE_LEVELS_MANAGEMENT = 'system/grade-levels-management', // Quản lý khối lớp
@@ -9,6 +8,7 @@ export enum Pathname {
   SYSTEM_SUBJECTS_MANAGEMENT = 'system/subjects-management', // Quản lý môn học
   SYSTEM_EXAMS_MANAGEMENT = 'system/exams-management', // Quản lý đề thi
   SYSTEM_USER_MANAGEMENT = 'system/user-management', // Quản lý người dùng
+  SYSTEM_EXAM_CHANGE_REQUEST_MANAGEMENT = 'system/exam-change-request-management', // Quản lý yêu cầu thay đổi đề thi
 }
 
 export const METHOD_OPTIONS = [

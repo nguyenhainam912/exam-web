@@ -53,3 +53,12 @@ export async function getRoleById(id: string) {
   }
 }
 
+export async function assignRoleToUser(payload: { userId: string; roleId: string }) {
+  try {
+    const response = await axiosInstance.post(`/rbac/assign-role`, payload);
+    return response?.data;
+  } catch (error) {
+    throw error;
+  }
+}
+

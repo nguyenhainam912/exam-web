@@ -108,7 +108,6 @@ const UserManagement = () => {
   }, [edit, view]);
 
   useEffect(() => {
-    console.log("a",userDetail , userActions.selectedUserId)
     if (userDetail && userActions.selectedUserId) {
       setRecord({ ...userDetail });
     }

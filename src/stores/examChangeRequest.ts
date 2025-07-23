@@ -1,12 +1,20 @@
 import { create } from 'zustand';
 import { BaseFormStore } from '../utils/interfaces';
-import type { Exam } from '@/services/exam';
 
-const useExamStore = create<BaseFormStore & {
-  itemList: Exam.Record[];
-  setItemList: (itemList: Exam.Record[]) => void;
-  record: Exam.Record;
-  setRecord: (record: Exam.Record) => void;
+export interface ExamChangeRequestRecord {
+  _id?: string;
+  createdBy?: any;
+  createdAt?: string;
+  status?: string;
+  content?: string;
+  // Thêm các trường khác nếu cần
+}
+
+const useExamChangeRequestStore = create<BaseFormStore & {
+  itemList: ExamChangeRequestRecord[];
+  setItemList: (itemList: ExamChangeRequestRecord[]) => void;
+  record: ExamChangeRequestRecord;
+  setRecord: (record: ExamChangeRequestRecord) => void;
 }>(
   (set, get) => ({
     itemList: [],
@@ -31,9 +39,9 @@ const useExamStore = create<BaseFormStore & {
     setView: (view) => set({ view }),
     isCreate: false,
     setIsCreate: (isCreate) => set({ isCreate }),
-    record: {} as Exam.Record,
+    record: {} as ExamChangeRequestRecord,
     setRecord: (record) => set({ record }),
   })
 );
 
-export default useExamStore; 
+export default useExamChangeRequestStore; 

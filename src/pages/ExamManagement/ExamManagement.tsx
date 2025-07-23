@@ -142,18 +142,21 @@ const ExamManagement = () => {
       dataIndex: 'subjectId',
       align: 'center',
       width: COLUMN_WIDTHS.subjectId,
+      render: (record: any) => <p>{record?.name}</p>
     },
     {
       title: 'Khối lớp',
       dataIndex: 'gradeLevelId',
       align: 'center',
       width: COLUMN_WIDTHS.gradeLevelId,
+      render: (record: any) => <p>{record?.name}</p>
     },
     {
       title: 'Loại đề',
       dataIndex: 'examTypeId',
       align: 'center',
       width: COLUMN_WIDTHS.examTypeId,
+      render: (record: any) => <p>{record?.name}</p>
     },
     {
       title: 'Thời lượng',

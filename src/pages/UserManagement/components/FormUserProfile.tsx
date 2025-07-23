@@ -1,6 +1,10 @@
-import { Form, Input, Button, Card, Row, Col } from 'antd';
-import { useEffect } from 'react';
+import { Form, Input, Button, Card, Row, Col, Select } from 'antd';
+import { useEffect, useMemo } from 'react';
 import useUserStore from '@/stores/user';
+import { usePostUserMutation, usePutUserMutation } from '@/hooks/react-query/useUser/useUserMutation';
+import { message } from 'antd';
+import { useRoleQuery } from '@/hooks/react-query/useRole/useRoleQuery';
+import { assignRoleToUser } from '@/services/role/role';
 
 interface Address {
   street: string;
@@ -16,11 +20,33 @@ interface FormValues {
   phoneNumber: string;
   avatar: string;
   address: Address;
+  roleId?: string;
 }
 
-const FormUserProfile = ({ onSubmit }: any) => {
+const FormUserProfile = () => {
   const [form] = Form.useForm<FormValues>();
-  const { record, view, edit, setVisibleForm } = useUserStore();
+  const { record, view, edit, setVisibleForm, page, limit, cond } = useUserStore();
+
+  // Memoize mutation callbacks
+  const mutationCallbacks = useMemo(() => ({
+    onSuccess: () => {
+      setVisibleForm(false);
+      form.resetFields();
+      message.success('Lưu thông tin thành công!');
+    },
+    onError: () => {
+      message.error('Có lỗi xảy ra, vui lòng thử lại!');
+    },
+    params: { page, limit, cond },
+  }), [page, limit, cond, form, setVisibleForm]);
+
+  const { mutate: postUser, isPending: isCreating } = usePostUserMutation({ ...mutationCallbacks });
+  const { mutate: putUser, isPending: isUpdating } = usePutUserMutation({ ...mutationCallbacks });
+
+  // Lấy danh sách role
+  console.log('Before useRoleQuery');
+  const { data: roleList = [], isLoading, error } = useRoleQuery({ page: 1, limit: 10, cond: {}});
+  console.log('After useRoleQuery', roleList, isLoading, error);
 
   useEffect(() => {
     if ((record?.userId || record?._id) && (edit || view)) {
@@ -36,19 +62,24 @@ const FormUserProfile = ({ onSubmit }: any) => {
           country: '',
           zipCode: '',
         },
+        roleId: record.roleId || undefined,
       };
-      console.log("formValues",formValues)
-
       form.setFieldsValue(formValues);
     } else {
       form.resetFields();
     }
   }, [record, edit, view, form]);
 
-  const handleSubmit = (values: FormValues) => {
-    onSubmit(values);
-    setVisibleForm(false);
-    form.resetFields();
+  const handleSubmit = async (values: FormValues) => {
+    if (edit && (record?._id || record?.userId)) {
+      const { roleId, ...userBody } = values;
+      await putUser({ id: record.userId, body: userBody });
+      if (roleId) {
+        await assignRoleToUser({ userId: record.userId, roleId });
+      }
+    } else {
+      postUser(values);
+    }
   };
 
   const isFormDisabled = view;
@@ -81,6 +112,16 @@ const FormUserProfile = ({ onSubmit }: any) => {
           <Col span={12}>
             <Form.Item label="Avatar" name="avatar"> 
               <Input placeholder="Link avatar" /> 
+            </Form.Item>
+          </Col>
+          <Col span={12}>
+            <Form.Item label="Vai trò" name="roleId">
+              <Select
+                placeholder="Chọn vai trò"
+                allowClear
+                options={roleList.map((role: any) => ({ label: role.name, value: role._id }))}
+                disabled={isFormDisabled}
+              />
             </Form.Item>
           </Col>
           <Col span={24}>

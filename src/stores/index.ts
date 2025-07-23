@@ -8,6 +8,7 @@ import useGradeLevelStore from "./gradeLevel";
 import useExamTypeStore from "./examType";
 import useSubjectStore from "./subject";
 import useExamStore from "./exam";
+import useExamChangeRequestStore from "./examChangeRequest";
 
 const storeMap: Record<string, UseBoundStore<StoreApi<any>>> = {
 
@@ -17,6 +18,7 @@ const storeMap: Record<string, UseBoundStore<StoreApi<any>>> = {
   examType: useExamTypeStore,
   subject: useSubjectStore,
   exam: useExamStore,
+  'exam-change-request': useExamChangeRequestStore,
 
   language: useLanguageStore,
   app: useAppStore,

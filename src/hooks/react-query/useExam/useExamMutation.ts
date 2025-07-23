@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { MutationOptions } from '@/utils/interfaces';
-import { postExam, putExam, delExam } from '@/services/exam/exam';
+import { postExam, putExam, delExam, reviewExamChangeRequest } from '@/services/exam/exam';
 
 export const usePostExamMutation = (options: MutationOptions<any>) => {
   const queryClient = useQueryClient();
@@ -32,6 +32,18 @@ export const useDeleteExamMutation = (options: MutationOptions<any>) => {
     mutationFn: delExam,
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ['exam'] });
+      options.onSuccess?.(data);
+    },
+    onError: options.onError,
+  });
+};
+
+export const useReviewExamChangeRequestMutation = (options: MutationOptions<any>) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, body }: { id: string; body: any }) => reviewExamChangeRequest(id, body),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ['exam-change-request'] });
       options.onSuccess?.(data);
     },
     onError: options.onError,

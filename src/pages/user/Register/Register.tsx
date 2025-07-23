@@ -1,5 +1,5 @@
 import Footer from '@/components/common/Footer/Footer';
-import { postUser, sendVerifyEmail } from '@/services/user/user';
+import { register, sendVerifyEmail } from '@/services/user/user';
 import rules from '@/utils/rules';
 import { LockOutlined, UserOutlined, MailOutlined, PhoneOutlined } from '@ant-design/icons';
 import { Button, Card, Col, ConfigProvider, Form, Input, message, Row } from 'antd';
@@ -16,7 +16,7 @@ const Register = () => {
   const handleSubmit = async (values: any) => {
     setSubmitting(true);
     try {
-      const response: any = await postUser({
+      const response: any = await register({
         email: values?.email,
         password: values?.password,
       });

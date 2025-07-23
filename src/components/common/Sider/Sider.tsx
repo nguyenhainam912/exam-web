@@ -33,7 +33,11 @@ const SiderComponent = ({children} : any) => {
           key: '1-1',
           label: <Link to={Pathname.SYSTEM_EXAMS_MANAGEMENT}>Quản lý đề thi</Link>
         },
-      ] 
+        {
+          key: '1-2',
+          label: <Link to={Pathname.SYSTEM_EXAM_CHANGE_REQUEST_MANAGEMENT}>Quản lý yêu cầu thay đổi đề thi</Link>
+        },
+      ]
     },
     {
       key: `6`,
@@ -60,10 +64,6 @@ const SiderComponent = ({children} : any) => {
       label: 'Quản lý hệ thống',
       children: [
         {
-          key: '7-1',
-          label: <Link to={Pathname.SYSTEM_ACCOUNT_MANAGEMENT}>Quản lý tài khoản</Link>
-        },
-        {
           key: '7-2',
           label: <Link to={Pathname.SYSTEM_ROLE_MANAGEMENT}>Quản lý vai trò</Link>
         },
@@ -86,10 +86,10 @@ const SiderComponent = ({children} : any) => {
     [Pathname.SYSTEM_EXAM_TYPES_MANAGEMENT]: '6-2',
     [Pathname.SYSTEM_SUBJECTS_MANAGEMENT]: '6-3',
 
-    [Pathname.SYSTEM_ACCOUNT_MANAGEMENT]: '7-1',
     [Pathname.SYSTEM_ROLE_MANAGEMENT]: '7-2',
     [Pathname.SYSTEM_PERMISSION_MANAGEMENT]: '7-3',
     [Pathname.SYSTEM_USER_MANAGEMENT]: '7-4',
+    [Pathname.SYSTEM_EXAM_CHANGE_REQUEST_MANAGEMENT]: '1-2',
   };
 
   

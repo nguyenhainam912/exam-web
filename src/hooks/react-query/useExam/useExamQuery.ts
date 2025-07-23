@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { GetParams } from '@/utils/interfaces';
 import useExamStore from '@/stores/exam';
-import { getExams, getExamById } from '@/services/exam/exam';
+import { getExams, getExamById, getExamChangeRequests } from '@/services/exam/exam';
 
 export const useExamQuery = (params: GetParams) => {
   const { setTotal } = useExamStore();
@@ -23,5 +23,15 @@ export const useExamByIdQuery = (id: string | undefined) => {
       return response?.data;
     },
     enabled: !!id,
+  });
+};
+
+export const useExamChangeRequestQuery = (params: { page: number; limit: number; cond?: any }) => {
+  return useQuery({
+    queryKey: ['exam-change-request', params],
+    queryFn: async () => {
+      const response = await getExamChangeRequests(params);
+      return response?.data?.result ?? [];
+    },
   });
 }; 

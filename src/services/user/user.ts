@@ -32,15 +32,25 @@ export async function getUserById(id: string) {
 /*Update user */
 export async function putUser(id: string, payload: any) {
   try {
-    const response = await axiosInstance.put(`/users/${id}`, payload);
+    const response = await axiosInstance.put(`/user/${id}`, payload);
     return response?.data
   } catch (error) {
     throw error
   }
 }
 
-/* REGISTER USER */
+/* Tạo mới người dùng */
 export async function postUser(payload: any) {
+  try {
+    const response = await axiosInstance.post(`/user`, payload);
+    return response?.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/* REGISTER USER */
+export async function register(payload: any) {
   try {
     const response = await axiosInstance.post(`/auth/register`, payload);
     return response?.data
