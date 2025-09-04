@@ -5,8 +5,8 @@ import type { IColumn } from '@/utils/interfaces';
 import { useExamChangeRequestQuery } from '@/hooks/react-query/useExam/useExamQuery';
 import TableHeader from '../ExamManagement/components/TableHeader';
 import Access from '@/components/share/access';
-import { Modal, Button, Space, Descriptions, Row, Col, Typography } from 'antd';
-import { EyeOutlined, CheckOutlined } from '@ant-design/icons';
+import { Modal, Button, Space, Descriptions, Row, Col, Typography, Tooltip, Tag } from 'antd';
+import { EyeOutlined, CheckOutlined, CloseOutlined } from '@ant-design/icons';
 import { useState } from 'react';
 import { getExamChangeRequestDetail, reviewExamChangeRequest } from '@/services/exam/exam';
 import { useReviewExamChangeRequestMutation } from '@/hooks/react-query/useExam/useExamMutation';
@@ -21,6 +21,12 @@ const COLUMN_WIDTHS = {
   content: 300,
   actions: 120,
 } as const;
+
+const STATUS_TAG: Record<string, { color: string; label: string }> = {
+  PENDING: { color: 'default', label: 'Chờ duyệt' },
+  APPROVED: { color: 'success', label: 'Đã duyệt' },
+  REJECTED: { color: 'error', label: 'Từ chối' },
+};
 
 const { Text } = Typography;
 
@@ -105,6 +111,10 @@ const ChangeRequestManagement = () => {
       dataIndex: 'status',
       align: 'center',
       width: COLUMN_WIDTHS.status,
+      render: (status: string) => {
+        const tag = STATUS_TAG[status] || { color: 'default', label: status };
+        return <Tag color={tag.color}>{tag.label}</Tag>;
+      },
     },
     {
       title: 'Nội dung',
@@ -124,13 +134,25 @@ const ChangeRequestManagement = () => {
             setEdit(false);
             setVisibleForm(true);
           }} />
-          <Button
-            icon={<CheckOutlined />}
-            type="primary"
-            loading={isReviewing && reviewingId === record._id}
-            onClick={() => handleReview(record._id, 'APPROVED')}
-            disabled={record.status !== 'PENDING'}
-          />
+          <Tooltip title="Phê duyệt">
+            <Button
+              icon={<CheckOutlined />}
+              type={record.status === 'APPROVED' ? 'primary' : 'default'}
+              style={record.status === 'APPROVED' ? { background: '#52c41a', borderColor: '#52c41a', color: '#fff' } : {}}
+              loading={isReviewing && reviewingId === record._id}
+              onClick={() => handleReview(record._id, 'APPROVED')}
+              disabled={record.status !== 'PENDING'}
+            />
+          </Tooltip>
+          <Tooltip title="Từ chối">
+            <Button
+              icon={<CloseOutlined />}
+              type={record.status === 'REJECTED' ? 'primary' : 'default'}
+              style={record.status === 'REJECTED' ? { background: '#ff4d4f', borderColor: '#ff4d4f', color: '#fff' } : {}}
+              onClick={() => handleReview(record._id, 'REJECTED')}
+              disabled={record.status !== 'PENDING'}
+            />
+          </Tooltip>
         </Space>
       ),
     },

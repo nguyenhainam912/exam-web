@@ -3,7 +3,7 @@ import axiosInstance from '@/utils/axiosInstance';
 export async function getNotification(payload: { page: number; limit: number; cond?: any; }) {
   try {
     const { page, limit, cond } = payload;
-    const response = await axiosInstance.get(`/notification`, {
+    const response = await axiosInstance.get(`/notify/notifications`, {
       params: {
         page,
         limit,

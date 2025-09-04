@@ -7,9 +7,10 @@ import {
 import { Notification } from '@/services/Notification';
 import { getNotification, putNotification, putNotifications } from '@/services/Notification/Notification';
 import { useAppStore } from '@/stores/appStore';
-import { Avatar, Badge, Button, List, Popover, Space, Tabs, TabsProps } from 'antd';
+import { Avatar, Badge, Button, List, Popover, Space, Tabs, TabsProps, message } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { io } from "socket.io-client";
 
 const NoticeIconView = () => {
   const navigate = useNavigate();
@@ -19,28 +20,52 @@ const NoticeIconView = () => {
   const [totalNoti, setTotalNoti] = useState<number>(0)
   const [page, setPage] = useState(1)
   const [popoverVisible, setPopoverVisible] = useState(false);
-  const notiMenuRef = useRef(null)
-  const debounceTimeoutRef = useRef<any>(null)
+
+  // --- SOCKET.IO REALTIME ---
+  useEffect(() => {
+    if (!currentUser?.userId) return;
+    const SOCKET_URL = import.meta.env.VITE_API_NOTIFY_URL || "http://localhost:3002";
+    const socket = io(SOCKET_URL, {
+      query: { userId: currentUser.userId }
+    });
+    socket.on("connect", () => {
+      console.log("Socket connected!");
+    });
+    socket.on("notification", (data: any) => {
+      // Tránh thêm trùng lặp nếu đã có id
+      setNotiData(prev => {
+        if (data && data._id && prev.some(n => n._id === data._id)) return prev;
+        return [data, ...prev];
+      });
+      setTotalNoti(prev => prev + 1);
+      if (data?.title) {
+        message.info({ content: data.title, duration: 2 });
+      }
+      console.log("New notification:", data);
+    });
+    return () => {
+      socket.disconnect();
+    };
+  }, [currentUser?.userId]);
 
   const fetchApi = async (page: number) => {
-    // if(currentUser) {
-    //   const roleId = currentUser?.role?.id
-    //   const res = await getNotification({
-    //     page: page, 
-    //     limit: 10,
-    //     cond: roleId
-    //   })
-    //   const result = res?.data?.data?.items
-    //   if(page === 1) {
-    //     setNotiData(result)
-    //   } else {
-    //     setNotiData(prev => [
-    //       ...prev, 
-    //       ...result
-    //     ])
-    //   }
-    //   setTotalNoti(res?.data?.data?.total)
-    // }
+    if(currentUser && currentUser.userId) {
+      const res = await getNotification({
+        page: page,
+        limit: 10,
+        cond: { user: currentUser.userId }
+      });
+      const result = res?.data?.result || [];
+      if(page === 1) {
+        setNotiData(result);
+      } else {
+        setNotiData(prev => [
+          ...prev,
+          ...result
+        ]);
+      }
+      setTotalNoti(res?.data?.total || 0);
+    }
   }
   useEffect(() => {
     fetchApi(page)
@@ -51,36 +76,6 @@ const NoticeIconView = () => {
     }
   }, [notiData, totalNoti])
 
-  const handleScroll = (e: any) => {
-    const notiMenu = e.target
-    if (notiMenu.scrollTop + notiMenu.clientHeight> notiMenu.scrollHeight -10) {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-      debounceTimeoutRef.current = setTimeout(() => {
-        loadmore();
-      }, 500);
-
-    }
-  };
-  useEffect(() => {
-    const notiMenu: any = notiMenuRef?.current
-    if (popoverVisible){
-      notiMenu?.addEventListener("scroll", handleScroll);
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      if (notiMenu) {
-        notiMenu?.removeEventListener("scroll", handleScroll);
-      }
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-      }
-    }
-  }, [notiData, totalNoti, popoverVisible]);
-  
   const handlePutNoti = async (noti: Notification.NotiRecord) => {
     if (noti && noti.status === 0) {
       const res = await putNotification(noti?.notiId, {status: 1})
@@ -104,7 +99,7 @@ const NoticeIconView = () => {
   }
 
   const renderNotiList = (filterUnRead?: boolean) => {
-    const filterNoti = filterUnRead ? (notifications || notiData )?.filter(noti => noti?.status === 0) : (notifications || notiData)
+    const filterNoti = filterUnRead ? notiData?.filter(noti => noti?.status === 0) : notiData;
     return (
       <List
         itemLayout="horizontal"
@@ -163,29 +158,7 @@ const NoticeIconView = () => {
       
     )
   }
-  const [notifications, setNotifications] = useState([
-    {
-      id: 1,
-      title: 'Bạn có một bình luận mới',
-      content: 'Nguyễn Văn A đã bình luận bài viết của bạn.',
-      time: '5 phút trước',
-      status: 0,
-    },
-    {
-      id: 2,
-      title: 'Bài viết của bạn được yêu thích',
-      content: 'Trần Thị B đã thích bài viết của bạn.',
-      time: '1 giờ trước',
-      status: 1,
-    },
-    {
-      id: 3,
-      title: 'Cập nhật từ nhóm',
-      content: 'Nhóm "React Vietnam" có bài viết mới.',
-      time: '2 giờ trước',
-      status: 0,
-    },
-  ]);
+
   const notiItems: TabsProps['items'] = [
     {
       key: '1',
@@ -221,7 +194,7 @@ const NoticeIconView = () => {
     />
   );
   return (
-    <div className='noti_bell'>
+    <div className='noti_bell' style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
       <Popover 
         content={menuHeaderDropdown} 
         placement="bottomRight" 
@@ -229,10 +202,31 @@ const NoticeIconView = () => {
         open={popoverVisible}
         onOpenChange={(visible) => setPopoverVisible(visible)}
       >
-        <BellOutlined style={{ fontSize: '22px', cursor: 'pointer', display: 'block', lineHeight: '56px', padding: '0 16px 0 16px' }} />
+        <BellOutlined style={{ fontSize: 22, cursor: 'pointer', padding: '0 16px', verticalAlign: 'middle' }} />
       </Popover>
-      {totalNoti > 0 ? <div style={{fontSize: '14px'}} className='noti_count'>{totalNoti > 99 ? "99+" : totalNoti}</div> : ''}
-    </div>      
+      {totalNoti > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: -4,
+          right: 2,
+          background: '#ff4d4f',
+          color: '#fff',
+          borderRadius: '50%',
+          width: 22,
+          height: 22,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          fontSize: 13,
+          fontWeight: 600,
+          zIndex: 2,
+          boxShadow: '0 0 2px #fff',
+          border: '2px solid #fff'
+        }}>
+          {totalNoti > 99 ? '99+' : totalNoti}
+        </div>
+      )}
+    </div>
   );
 };
 

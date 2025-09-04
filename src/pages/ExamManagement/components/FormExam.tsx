@@ -80,7 +80,13 @@ const FormExam = ({ examId }: FormExamProps) => {
         gradeLevelId: record.gradeLevelId?._id || '',
         examTypeId: record.examTypeId?._id || '',
         duration: record.duration || 0,
-        questions: record.questions || [],
+        questions: (record.questions || []).map((q: any) => ({
+          ...q,
+          correctAnswer:
+            Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0
+              ? ['A', 'B', 'C', 'D'][q.correctAnswers[0]]
+              : undefined,
+        })),
       };
       form.setFieldsValue(formValues);
     } else {
