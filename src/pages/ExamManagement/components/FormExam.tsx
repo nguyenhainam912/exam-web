@@ -73,6 +73,7 @@ const FormExam = ({ examId }: FormExamProps) => {
 
   useEffect(() => {
     if (record?._id && (edit || view)) {
+      // Existing record (edit/view mode)
       const formValues: FormValues = {
         title: record.title || '',
         description: record.description || '',
@@ -87,6 +88,18 @@ const FormExam = ({ examId }: FormExamProps) => {
               ? ['A', 'B', 'C', 'D'][q.correctAnswers[0]]
               : undefined,
         })),
+      };
+      form.setFieldsValue(formValues);
+    } else if (record?.questions && !edit && !view) {
+      // New exam with uploaded questions (create mode with pre-filled questions)
+      const formValues: FormValues = {
+        title: record.title || '',
+        description: record.description || '',
+        subjectId: record.subjectId?._id || '',
+        gradeLevelId: record.gradeLevelId?._id || '',
+        examTypeId: record.examTypeId?._id || '',
+        duration: record.duration || 60,
+        questions: record.questions || [],
       };
       form.setFieldsValue(formValues);
     } else {
@@ -232,12 +245,10 @@ const FormExam = ({ examId }: FormExamProps) => {
                                 </span>
                               </span>
                             }
-                            required
                           >
                             <Form.Item
                               name={[name, 'correctAnswer']}
                               noStyle
-                              rules={[{ required: true, message: 'Chọn đáp án đúng' }]}
                             >
                               <Radio.Group style={{ width: '100%' }} disabled={isFormDisabled}>
                                 {['A', 'B', 'C', 'D'].map((option, idx) => (

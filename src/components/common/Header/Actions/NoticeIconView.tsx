@@ -5,12 +5,12 @@ import {
 } from '@ant-design/icons';
 
 import { Notification } from '@/services/Notification';
-import { getNotification, putNotification, putNotifications } from '@/services/Notification/Notification';
+import { getNotification, putNotification } from '@/services/Notification/Notification';
 import { useAppStore } from '@/stores/appStore';
-import { Avatar, Badge, Button, List, Popover, Space, Tabs, TabsProps, message } from 'antd';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useSocketNotification } from '@/hooks/useSocketNotification';
+import { Avatar, Badge, Button, List, Popover, Space, Tabs, TabsProps } from 'antd';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { io } from "socket.io-client";
 
 const NoticeIconView = () => {
   const navigate = useNavigate();
@@ -21,55 +21,49 @@ const NoticeIconView = () => {
   const [page, setPage] = useState(1)
   const [popoverVisible, setPopoverVisible] = useState(false);
 
-  // --- SOCKET.IO REALTIME ---
-  useEffect(() => {
-    if (!currentUser?.userId) return;
-    const SOCKET_URL = import.meta.env.VITE_API_NOTIFY_URL || "http://localhost:3002";
-    const socket = io(SOCKET_URL, {
-      query: { userId: currentUser.userId }
-    });
-    socket.on("connect", () => {
-      console.log("Socket connected!");
-    });
-    socket.on("notification", (data: any) => {
+  // Sử dụng custom hook để quản lý socket - chỉ tạo 1 lần duy nhất
+  useSocketNotification({
+    userId: currentUser?.userId,
+    onNotification: (data: any) => {
+      console.log("Received notification in component:", data);
       // Tránh thêm trùng lặp nếu đã có id
       setNotiData(prev => {
         if (data && data._id && prev.some(n => n._id === data._id)) return prev;
         return [data, ...prev];
       });
       setTotalNoti(prev => prev + 1);
-      if (data?.title) {
-        message.info({ content: data.title, duration: 2 });
-      }
-      console.log("New notification:", data);
-    });
-    return () => {
-      socket.disconnect();
-    };
-  }, [currentUser?.userId]);
+    }
+  });
 
+  // Fetch notifications from API
   const fetchApi = async (page: number) => {
     if(currentUser && currentUser.userId) {
-      const res = await getNotification({
-        page: page,
-        limit: 10,
-        cond: { user: currentUser.userId }
-      });
-      const result = res?.data?.result || [];
-      if(page === 1) {
-        setNotiData(result);
-      } else {
-        setNotiData(prev => [
-          ...prev,
-          ...result
-        ]);
+      try {
+        const res = await getNotification({
+          page: page,
+          limit: 10,
+          cond: { user: currentUser.userId }
+        });
+        const result = res?.data?.result || [];
+        if(page === 1) {
+          setNotiData(result);
+        } else {
+          setNotiData(prev => [
+            ...prev,
+            ...result
+          ]);
+        }
+        setTotalNoti(res?.data?.total || 0);
+      } catch (error) {
+        console.error('Error fetching notifications:', error);
       }
-      setTotalNoti(res?.data?.total || 0);
     }
   }
+
   useEffect(() => {
     fetchApi(page)
   }, [page, currentUser])
+
   const loadmore = useCallback(() => {
     if( notiData?.length < totalNoti && !(totalNoti - notiData?.length < 10) ) {
       setPage(prev => prev + 1)
@@ -77,25 +71,28 @@ const NoticeIconView = () => {
   }, [notiData, totalNoti])
 
   const handlePutNoti = async (noti: Notification.NotiRecord) => {
-    if (noti && noti.status === 0) {
-      const res = await putNotification(noti?.notiId, {status: 1})
-      if(res?.status === 200){
-        setPage(1)
+    try {
+      if (noti && noti.status === 0) {
+        const res = await putNotification(noti?.notiId, {status: 1})
+        if(res?.status === 200){
+          setPage(1)
+        }
       }
-    }
-    const notiType: string = noti?.info?.type
-    switch (notiType) {
-      case "HOP_DONG":
-        navigate('/kho/quanlykho')
-        break;
-      default:
+      const notiType: string = noti?.info?.type
+      switch (notiType) {
+        case "HOP_DONG":
+          navigate('/kho/quanlykho')
+          break;
+        default:
+      }
+    } catch (error) {
+      console.error('Error updating notification:', error);
     }
   }
+
   const handleCheckAllNoti = async () => {
-    // const res = await putNotifications({status: 1})
-    // if(res?.status === 200){
-    //   setPage(1)
-    // }
+    // Implementation for mark all as read
+    console.log('Mark all as read');
   }
 
   const renderNotiList = (filterUnRead?: boolean) => {
@@ -115,13 +112,17 @@ const NoticeIconView = () => {
             }}
             onMouseEnter={(e) => (e.currentTarget.style.background = item.status === 0 ? '#d2e1ff' : '#e0e0e0')}
             onMouseLeave={(e) => (e.currentTarget.style.background = item.status === 0 ? '#f0f5ff' : '#fff')}
+            onClick={() => handlePutNoti(item)}
             actions={[
               item.status === 0 ? (
                 <Button
                   type="link"
                   size="small"
                   icon={<CheckOutlined />}
-                  // onClick={() => markAsRead(item.id)}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handlePutNoti(item);
+                  }}
                   style={{ color: '#1890ff' }}
                 />
               ) : null,
@@ -129,7 +130,10 @@ const NoticeIconView = () => {
                 type="link"
                 size="small"
                 icon={<DeleteOutlined />}
-                // onClick={() => deleteNotification(item.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  // Handle delete
+                }}
                 style={{ color: '#ff4d4f' }}
               />,
             ]}
@@ -155,7 +159,6 @@ const NoticeIconView = () => {
         )}
         locale={{ emptyText: 'Không có thông báo nào' }}
       />
-      
     )
   }
 
@@ -169,12 +172,10 @@ const NoticeIconView = () => {
       key: '2',
       label: 'Chưa đọc',
       children: renderNotiList(true),
-
     },
-    
   ];
 
-  const rightNoti =  {
+  const rightNoti = {
     ['right']: 
       <img 
         src='/double-check.svg' 
@@ -184,6 +185,7 @@ const NoticeIconView = () => {
         onClick={handleCheckAllNoti}
       /> ,
   }
+
   const menuHeaderDropdown = (
     <Tabs 
       defaultActiveKey="1" 
@@ -193,6 +195,7 @@ const NoticeIconView = () => {
       tabBarExtraContent={rightNoti}
     />
   );
+
   return (
     <div className='noti_bell' style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
       <Popover 

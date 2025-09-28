@@ -37,6 +37,19 @@ export async function getExamById(id: string) {
   }
 }
 
+export async function uploadExamFile(file: FormData) {
+  try {
+    const response = await axiosInstance.post('/exams/upload-file', file, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response?.data;
+  } catch (error) {
+    throw error;
+  }
+}
+
 // Lấy danh sách yêu cầu thay đổi đề thi
 export async function getExamChangeRequests(payload: { page: number; limit: number; cond?: any }) {
   try {

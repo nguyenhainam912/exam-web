@@ -1,16 +1,18 @@
 import { message } from 'antd';
-import { useEffect, useMemo, useCallback } from 'react';
+import { useEffect, useMemo, useCallback, useState } from 'react';
 import TableBase from '@/components/common/Table';
 import type { IColumn } from '@/utils/interfaces';
 import { useExamQuery, useExamByIdQuery } from '@/hooks/react-query/useExam/useExamQuery';
 import useExamStore from '@/stores/exam';
 import { useDeleteExamMutation } from '@/hooks/react-query/useExam/useExamMutation';
 import { ALL_PERMISSIONS } from '@/config/permissions';
+import type { Exam } from '@/services/exam';
 
 // Import components
 import TableHeader from './components/TableHeader';
 import ActionButtons from './components/ActionButtons';
 import FormExam from './components/FormExam';
+import UploadExamModal from './components/UploadExamModal';
 import Access from '@/components/share/access';
 
 // Import hooks
@@ -31,6 +33,7 @@ const COLUMN_WIDTHS = {
 
 const ExamManagement = () => {
   const { page, limit, cond, setCondition, setRecord, setView, setEdit, setVisibleForm, edit, view } = useExamStore();
+  const [uploadModalVisible, setUploadModalVisible] = useState(false);
 
   // Custom hooks
   const {
@@ -72,6 +75,33 @@ const ExamManagement = () => {
   const handleDelete = useCallback((id: string) => {
     deleteExam(id);
   }, [deleteExam]);
+
+  // Upload handlers
+  const handleUpload = useCallback(() => {
+    setUploadModalVisible(true);
+  }, []);
+
+  const handleUploadSuccess = useCallback((uploadedQuestions: any[]) => {
+    // Create a new exam with uploaded questions data
+    const examData: Partial<Exam.Record> = {
+      title: '',
+      description: '',
+      subjectId: { _id: '', name: '' },
+      gradeLevelId: { _id: '', name: '' },
+      examTypeId: { _id: '', name: '' },
+      duration: 60,
+      status: 'DRAFT',
+      questions: uploadedQuestions
+    };
+    
+    // Set the record with uploaded data and open form
+    setRecord(examData as Exam.Record);
+    setEdit(false);
+    setView(false);
+    setVisibleForm(true);
+    
+    message.success(`Đã tạo đề thi với ${uploadedQuestions.length} câu hỏi từ file upload!`);
+  }, [setRecord, setEdit, setView, setVisibleForm]);
 
   // Filter fields configuration
   const filterFields: FilterField[] = useMemo(() => [
@@ -213,8 +243,17 @@ const ExamManagement = () => {
           filterKey={filterKey}
           filterFields={filterFields}
           onAdd={handleAdd}
+          onUpload={handleUpload}
+          showUploadButton={true}
+          uploadButtonText="Upload File"
         />
       </TableBase>
+      
+      <UploadExamModal
+        visible={uploadModalVisible}
+        onClose={() => setUploadModalVisible(false)}
+        onSuccess={handleUploadSuccess}
+      />
     </Access>
   );
 };

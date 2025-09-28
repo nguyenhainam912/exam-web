@@ -1,5 +1,5 @@
 import { Button } from 'antd';
-import { PlusCircleOutlined } from '@ant-design/icons';
+import { PlusCircleOutlined, UploadOutlined } from '@ant-design/icons';
 import { memo } from 'react';
 import { FilterField } from '@/components/common/Filter/filter';
 import SearchInput from '@/components/common/Search/SearchInput';
@@ -17,8 +17,11 @@ interface TableHeaderProps {
   filterKey: number;
   filterFields: FilterField[];
   onAdd: () => void;
+  onUpload?: () => void;
   showAddButton?: boolean;
   addButtonText?: string;
+  showUploadButton?: boolean;
+  uploadButtonText?: string;
   showFilter?: boolean;
   showSearch?: boolean;
 }
@@ -33,8 +36,11 @@ const TableHeader = memo(({
   filterKey,
   filterFields,
   onAdd,
+  onUpload,
   showAddButton = true,
   addButtonText = "Thêm mới",
+  showUploadButton = false,
+  uploadButtonText = "Upload File",
   showFilter = true,
   showSearch = true
 }: TableHeaderProps) => (
@@ -62,6 +68,15 @@ const TableHeader = memo(({
           filterKey={filterKey}
           filterFields={filterFields}
         />
+      )}
+      {showUploadButton && onUpload && (
+        <Button 
+          icon={<UploadOutlined />}
+          onClick={onUpload}
+          style={{ marginLeft: 5, marginTop: 5 }}
+        >
+          {uploadButtonText}
+        </Button>
       )}
       {showAddButton && (
         <Access permission={ALL_PERMISSIONS.EXAMS?.CREATE} hideChildren={true}>
