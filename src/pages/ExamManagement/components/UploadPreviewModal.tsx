@@ -22,33 +22,54 @@ const UploadPreviewModal = ({ visible, data, onClose, onConfirm }: UploadPreview
   // Safeguard: Đảm bảo data là array hợp lệ
   const safeData = Array.isArray(data) ? data : [];
 
-  // Parse answers from string to array
+  // Parse answers from string to array of 4 options
   const parseAnswers = useCallback((answersString: string): string[] => {
     if (!answersString || typeof answersString !== 'string') return ['', '', '', ''];
     
-    // Với format mới, answers chỉ chứa 1 đáp án đúng
-    // Ví dụ: "D. 6." hoặc "A. -5."
-    // Tạo 4 đáp án trống, user sẽ cần nhập thủ công
-    return ['', '', '', ''];
+    // Tách các đáp án A, B, C, D từ chuỗi
+    // Ví dụ: "A. nhà ở.\nB. việc làm.\nC. tài sản.\nD. nhân thân."
+    const lines = answersString.split('\n');
+    const options = ['', '', '', ''];
+    
+    lines.forEach(line => {
+      const match = line.match(/^([A-D])\. (.+)$/);
+      if (match) {
+        const index = match[1].charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+        if (index >= 0 && index < 4) {
+          options[index] = match[2].trim().replace(/\.$/, ''); // Bỏ dấu chấm cuối
+        }
+      }
+    });
+    
+    return options;
   }, []);
 
   // Extract question content (remove number prefix)
   const parseQuestion = useCallback((questionString: string): string => {
     if (!questionString || typeof questionString !== 'string') return '';
     
-    // Remove number prefix like "1. " or "2. "
-    return questionString.replace(/^\d+\.\s*/, '').trim();
+    // Remove number prefix like "Câu 81: " 
+    return questionString.replace(/^Câu \d+:\s*/, '').trim();
   }, []);
 
   // Extract correct answer from answers string
   const parseCorrectAnswer = useCallback((answersString: string): string => {
     if (!answersString || typeof answersString !== 'string') return '';
     
-    // Với format mới, answers chứa đáp án đúng
-    // Ví dụ: "D. 6." -> trả về "D"
-    const match = answersString.match(/^([A-D])\./);
-    return match ? match[1] : '';
+    // KHÔNG tự động parse đáp án đúng từ chuỗi options
+    // Chỉ trả về đáp án đúng nếu có thông tin rõ ràng từ API/data khác
+    // Hiện tại trả về rỗng để không tự động chọn đáp án nào
+    return '';
   }, []);
+
+  // Parse full question to get both question and options for display
+  const parseQuestionForDisplay = useCallback((questionString: string, answersString: string) => {
+    const questionContent = parseQuestion(questionString);
+    const options = parseAnswers(answersString);
+    const correctAnswer = parseCorrectAnswer(answersString);
+    
+    return { questionContent, options, correctAnswer };
+  }, [parseQuestion, parseAnswers, parseCorrectAnswer]);
 
   // Convert uploaded data to form format
   const convertToFormData = useCallback(() => {
@@ -63,8 +84,8 @@ const UploadPreviewModal = ({ visible, data, onClose, onConfirm }: UploadPreview
       
       return {
         content: question,
-        options: answers, // 4 empty strings, user needs to fill
-        correctAnswer: correctAnswer, // A, B, C, or D
+        options: answers, // Mảng 4 đáp án đã được parse
+        correctAnswer: correctAnswer || undefined, // Chỉ set nếu có giá trị, nếu không thì undefined
         explanation: '',
         difficulty: 1,
         isActive: true
@@ -97,7 +118,7 @@ const UploadPreviewModal = ({ visible, data, onClose, onConfirm }: UploadPreview
   };
 
   const renderQuestion = (item: UploadedQuestion, index: number) => {
-    const question = parseQuestion(item.question);
+    const { questionContent, options, correctAnswer } = parseQuestionForDisplay(item.question, item.answers);
     const isSelected = selectedQuestions.includes(index);
 
     return (
@@ -122,29 +143,55 @@ const UploadPreviewModal = ({ visible, data, onClose, onConfirm }: UploadPreview
             <Paragraph style={{ marginBottom: 12 }}>
               <Text strong>Câu hỏi:</Text>
               <br />
-              <span dangerouslySetInnerHTML={{ __html: question }} />
+              <span dangerouslySetInnerHTML={{ __html: questionContent }} />
             </Paragraph>
-            <div>
-              <Text strong>Đáp án đúng:</Text>
-              <div style={{ paddingLeft: 16, marginTop: 4 }}>
-                <Text 
-                  style={{ 
-                    backgroundColor: '#f6ffed', 
-                    color: '#389e0d', 
-                    padding: '2px 8px', 
-                    borderRadius: 4,
-                    fontWeight: 'bold'
-                  }}
-                >
-                  {item.answers}
-                </Text>
-              </div>
-              <div style={{ marginTop: 8, fontSize: 12, color: '#666' }}>
-                <Text italic>
-                  Lưu ý: Các lựa chọn A, B, C, D sẽ cần được nhập thủ công trong form tạo đề thi.
-                </Text>
-              </div>
+            
+            {/* Hiển thị các lựa chọn */}
+            <div style={{ marginBottom: 12 }}>
+              <Text strong>Các lựa chọn:</Text>
+              {options.map((option, optIndex) => {
+                if (!option.trim()) return null;
+                const letter = String.fromCharCode(65 + optIndex); // A, B, C, D
+                const isCorrect = correctAnswer && correctAnswer === letter; // Chỉ highlight khi có correctAnswer
+                return (
+                  <div 
+                    key={optIndex} 
+                    style={{ 
+                      marginLeft: 16,
+                      padding: '4px 8px',
+                      backgroundColor: isCorrect ? '#f6ffed' : 'transparent',
+                      border: isCorrect ? '1px solid #52c41a' : 'none',
+                      borderRadius: 4,
+                      marginTop: 4
+                    }}
+                  >
+                    <Text strong={!!isCorrect}>
+                      {letter}. {option}
+                    </Text>
+                  </div>
+                );
+              })}
             </div>
+            
+            {/* Chỉ hiển thị đáp án đúng khi thực sự có */}
+            {correctAnswer && (
+              <div>
+                <Text strong>Đáp án đúng:</Text>
+                <div style={{ paddingLeft: 16, marginTop: 4 }}>
+                  <Text 
+                    style={{ 
+                      backgroundColor: '#f6ffed', 
+                      color: '#389e0d', 
+                      padding: '2px 8px', 
+                      borderRadius: 4,
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {correctAnswer}
+                  </Text>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </Card>

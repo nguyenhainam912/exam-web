@@ -99,7 +99,12 @@ const FormExam = ({ examId }: FormExamProps) => {
         gradeLevelId: record.gradeLevelId?._id || '',
         examTypeId: record.examTypeId?._id || '',
         duration: record.duration || 60,
-        questions: record.questions || [],
+        questions: (record.questions || []).map((q: any) => ({
+          ...q,
+          // Tự động fill các đáp án A, B, C, D từ options array
+          options: q.options || ['', '', '', ''],
+          correctAnswer: q.correctAnswer || undefined,
+        })),
       };
       form.setFieldsValue(formValues);
     } else {
@@ -241,7 +246,7 @@ const FormExam = ({ examId }: FormExamProps) => {
                               <span>
                                 Các lựa chọn (A, B, C, D)
                                 <span style={{ color: '#faad14', marginLeft: 16, fontWeight: 500 }}>
-                                  Đáp án đúng
+                                  Đáp án
                                 </span>
                               </span>
                             }
