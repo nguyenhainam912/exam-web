@@ -1,11 +1,12 @@
-import { Button, Popconfirm } from 'antd';
-import { DeleteOutlined, EditOutlined, EyeOutlined, CheckOutlined } from '@ant-design/icons';
-import { memo } from 'react';
+import { Button, Popconfirm, message } from 'antd';
+import { DeleteOutlined, EditOutlined, EyeOutlined, CheckOutlined, DownloadOutlined } from '@ant-design/icons';
+import { memo, useState } from 'react';
 import type { Exam } from '@/services/exam';
 import { ALL_PERMISSIONS } from '@/config/permissions';
 import Access from '@/components/share/access';
 import { usePutExamMutation } from '@/hooks/react-query/useExam/useExamMutation';
-import { message } from 'antd';
+import { generateExamPdf } from '@/services/exam/exam';
+import FileDownload from 'js-file-download';
 
 interface ActionButtonsProps {
   record: Exam.Record;
@@ -30,11 +31,43 @@ const BUTTON_STYLES = {
 } as const;
 
 const ActionButtons = memo(({ record, onView, onEdit, onDelete }: ActionButtonsProps) => {
+  const [downloading, setDownloading] = useState(false);
+  
   const { mutate: approveExam, isPending: isApproving } = usePutExamMutation({
     onSuccess: () => message.success('Phê duyệt thành công!'),
     onError: () => message.error('Có lỗi khi phê duyệt!'),
     params: {},
   });
+
+  const handleDownloadPdf = async () => {
+    if (!record._id) {
+      message.error('Không tìm thấy ID đề thi!');
+      return;
+    }
+    
+    setDownloading(true);
+    try {
+      const response = await generateExamPdf(record._id);
+      
+      // Tạo tên file từ tiêu đề đề thi
+      const fileName = `${record.title || 'Đề-thi'}.pdf`;
+      
+      // Download file
+      FileDownload(response.data, fileName);
+      message.success('Tải đề thi thành công!');
+    } catch (error: any) {
+      console.error('Download error:', error);
+      if (error.response?.status === 404) {
+        message.error('Đề thi không tồn tại!');
+      } else if (error.response?.status === 500) {
+        message.error('Lỗi server khi tạo PDF!');
+      } else {
+        message.error('Có lỗi xảy ra khi tải đề thi!');
+      }
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const handleApprove = () => {
     // Chuẩn hóa dữ liệu gửi lên
@@ -75,6 +108,23 @@ const ActionButtons = memo(({ record, onView, onEdit, onDelete }: ActionButtonsP
           disabled={record.status === 'ACTIVE'}
         />
       )}
+      
+      {/* Nút download PDF */}
+      <Access permission={ALL_PERMISSIONS.EXAMS?.GENERATE_PDF} hideChildren={true}>
+        <Button
+          title="Tải đề thi PDF"
+          icon={<DownloadOutlined />}
+          style={{ 
+            marginRight: 8, 
+            background: '#fff', 
+            color: '#722ed1', 
+            borderColor: '#722ed1' 
+          }}
+          loading={downloading}
+          onClick={handleDownloadPdf}
+        />
+      </Access>
+      
       <Access permission={ALL_PERMISSIONS.EXAMS?.GET_BY_ID} hideChildren={true}>
         <Button
           title="Xem chi tiết"

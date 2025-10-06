@@ -33,6 +33,7 @@ export const ALL_PERMISSIONS = {
     GET_BY_ID: { method: "GET", apiPath: "/exams/:id", module: "EXAMS" },
     UPDATE: { method: "PUT", apiPath: "/exams/:id", module: "EXAMS" },
     DELETE: { method: "DELETE", apiPath: "/exams/:id", module: "EXAMS" },
+    GENERATE_PDF: { method: "POST", apiPath: "/exams/:id/generate-pdf", module: "EXAMS" },
   },
 
   EXAM_TYPES: {

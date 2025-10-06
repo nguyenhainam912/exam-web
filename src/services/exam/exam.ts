@@ -75,4 +75,16 @@ export async function getExamChangeRequestDetail(id: string) {
 // Duyệt hoặc từ chối yêu cầu thay đổi đề thi
 export async function reviewExamChangeRequest(id: string, payload: { status: 'APPROVED' | 'REJECTED' }) {
   return await axiosInstance.put(`/exam-change-requests/${id}/review`, payload);
+}
+
+// Tạo và download PDF đề thi
+export async function generateExamPdf(id: string) {
+  try {
+    const response = await axiosInstance.post(`/exams/${id}/generate-pdf`, {}, {
+      responseType: 'blob', // Important để xử lý file PDF
+    });
+    return response;
+  } catch (error) {
+    throw error;
+  }
 } 
