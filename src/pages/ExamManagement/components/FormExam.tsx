@@ -6,14 +6,7 @@ import rules from '@/utils/rules';
 import { useSubjectQuery } from '@/hooks/react-query/useSubject/useSubjectQuery';
 import { useGradeLevelQuery } from '@/hooks/react-query/useGradeLevel/useGradeLevelQuery';
 import { useExamTypeQuery } from '@/hooks/react-query/useExamType/useExamTypeQuery';
-import { useExamByIdQuery } from '@/hooks/react-query/useExam/useExamQuery';
-
-// TODO: Replace with real options from API or constants
-const statusOptions = [
-  { label: 'Nháp', value: 'DRAFT' },
-  { label: 'Công khai', value: 'PUBLISHED' },
-  { label: 'Ẩn', value: 'HIDDEN' },
-];
+import { MathPreviewInput } from '@/components/MathComponents';
 
 interface FormExamProps {
   examId?: string;
@@ -82,16 +75,22 @@ const FormExam = ({ examId }: FormExamProps) => {
         examTypeId: record.examTypeId?._id || '',
         duration: record.duration || 0,
         questions: (record.questions || []).map((q: any) => ({
-          ...q,
+          content: q.content || '',
+          options: q.options && q.options.length >= 4 
+            ? q.options.slice(0, 4)
+            : ['', '', '', ''],
           correctAnswer:
             Array.isArray(q.correctAnswers) && q.correctAnswers.length > 0
               ? ['A', 'B', 'C', 'D'][q.correctAnswers[0]]
               : undefined,
+          explanation: q.explanation || '',
+          difficulty: q.difficulty || 1,
+          isActive: q.isActive !== false,
         })),
       };
       form.setFieldsValue(formValues);
     } else if (record?.questions && !edit && !view) {
-      // New exam with uploaded questions (create mode with pre-filled questions)
+      // New exam with uploaded questions
       const formValues: FormValues = {
         title: record.title || '',
         description: record.description || '',
@@ -100,10 +99,14 @@ const FormExam = ({ examId }: FormExamProps) => {
         examTypeId: record.examTypeId?._id || '',
         duration: record.duration || 60,
         questions: (record.questions || []).map((q: any) => ({
-          ...q,
-          // Tự động fill các đáp án A, B, C, D từ options array
-          options: q.options || ['', '', '', ''],
+          content: q.content || '',
+          options: q.options && q.options.length >= 4 
+            ? q.options.slice(0, 4)
+            : ['', '', '', ''],
           correctAnswer: q.correctAnswer || undefined,
+          explanation: q.explanation || '',
+          difficulty: q.difficulty || 1,
+          isActive: q.isActive !== false,
         })),
       };
       form.setFieldsValue(formValues);
@@ -113,12 +116,10 @@ const FormExam = ({ examId }: FormExamProps) => {
   }, [record, edit, view, form]);
 
   const handleSubmit = useCallback((values: FormValues) => {
-    // Convert correctAnswer (string) to correctAnswers (array of index) for each question
     const questions = (values.questions || []).map(q => {
       const { correctAnswer, ...rest } = q;
       let correctIndex = -1;
       if (correctAnswer) {
-        // 'A' -> 0, 'B' -> 1, 'C' -> 2, 'D' -> 3
         correctIndex = ['A', 'B', 'C', 'D'].indexOf(correctAnswer);
       }
       return {
@@ -157,56 +158,33 @@ const FormExam = ({ examId }: FormExamProps) => {
       >
         <Row gutter={16}>
           <Col span={12}>
-            <Form.Item 
-              label="Tiêu đề đề thi" 
-              name="title" 
-              rules={rules.required}
-            > 
+            <Form.Item label="Tiêu đề đề thi" name="title" rules={rules.required}> 
               <Input placeholder="Nhập tiêu đề đề thi" /> 
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item 
-              label="Môn học" 
-              name="subjectId"
-              rules={rules.required}
-            > 
+            <Form.Item label="Môn học" name="subjectId" rules={rules.required}> 
               <Select placeholder="Chọn môn học" options={subjectOptions} loading={loadingSubject} /> 
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item 
-              label="Khối lớp" 
-              name="gradeLevelId"
-              rules={rules.required}
-            > 
+            <Form.Item label="Khối lớp" name="gradeLevelId" rules={rules.required}> 
               <Select placeholder="Chọn khối lớp" options={gradeLevelOptions} loading={loadingGradeLevel} /> 
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item 
-              label="Loại đề" 
-              name="examTypeId"
-              rules={rules.required}
-            > 
+            <Form.Item label="Loại đề" name="examTypeId" rules={rules.required}> 
               <Select placeholder="Chọn loại đề" options={examTypeOptions} loading={loadingExamType} /> 
             </Form.Item>
           </Col>
           <Col span={12}>
-            <Form.Item 
-              label="Thời lượng (phút)" 
-              name="duration"
-              rules={rules.required}
-            > 
+            <Form.Item label="Thời lượng (phút)" name="duration" rules={rules.required}> 
               <InputNumber min={1} style={{ width: '100%' }} placeholder="Nhập thời lượng" /> 
             </Form.Item>
           </Col>
           <Col span={24}>
-            <Form.Item 
-              label="Mô tả" 
-              name="description"
-            > 
-              <Input.TextArea placeholder="Nhập mô tả" rows={3} /> 
+            <Form.Item label="Mô tả" name="description"> 
+              <MathPreviewInput placeholder="Nhập mô tả (hỗ trợ công thức toán học)" rows={3} disabled={isFormDisabled} /> 
             </Form.Item>
           </Col>
           <Col span={24}>
@@ -214,7 +192,6 @@ const FormExam = ({ examId }: FormExamProps) => {
               <Input value={record?.questions?.length || 0} disabled />
             </Form.Item>
           </Col>
-          {/* Thêm phần tạo/chỉnh sửa câu hỏi */}
           <Col span={24}>
             <Form.List name="questions">
               {(fields, { add, remove }) => (
@@ -238,7 +215,7 @@ const FormExam = ({ examId }: FormExamProps) => {
                             name={[name, 'content']}
                             rules={rules.required}
                           >
-                            <Input.TextArea placeholder="Nhập nội dung câu hỏi" rows={2} disabled={isFormDisabled} />
+                            <MathPreviewInput placeholder="Nhập nội dung câu hỏi (hỗ trợ công thức toán học)" rows={2} disabled={isFormDisabled} />
                           </Form.Item>
                           <Form.Item
                             {...restField}
@@ -251,22 +228,26 @@ const FormExam = ({ examId }: FormExamProps) => {
                               </span>
                             }
                           >
-                            <Form.Item
-                              name={[name, 'correctAnswer']}
-                              noStyle
-                            >
+                            <Form.Item name={[name, 'correctAnswer']} noStyle>
                               <Radio.Group style={{ width: '100%' }} disabled={isFormDisabled}>
                                 {['A', 'B', 'C', 'D'].map((option, idx) => (
-                                  <Input.Group compact key={option} style={{ display: 'flex', alignItems: 'center', marginBottom: 8 }}>
-                                    <Form.Item
-                                      name={[name, 'options', idx]}
-                                      noStyle
-                                      rules={[{ required: true, message: `Nhập đáp án ${option}` }]}
-                                    >
-                                      <Input style={{ width: '85%' }} placeholder={`Đáp án ${option}`} disabled={isFormDisabled} />
-                                    </Form.Item>
-                                    <Radio value={option} style={{ marginLeft: 8 }} disabled={isFormDisabled} />
-                                  </Input.Group>
+                                  <div key={option} style={{ display: 'flex', alignItems: 'center', marginBottom: 8, gap: 8 }}>
+                                    <div style={{ width: 20, fontWeight: 500 }}>{option}.</div>
+                                    <div style={{ flex: 1 }}>
+                                      <Form.Item
+                                        name={[name, 'options', idx]}
+                                        noStyle
+                                        rules={[{ required: true, message: `Nhập đáp án ${option}` }]}
+                                      >
+                                        <MathPreviewInput 
+                                          placeholder={`Đáp án ${option}`} 
+                                          rows={1}
+                                          disabled={isFormDisabled} 
+                                        />
+                                      </Form.Item>
+                                    </div>
+                                    <Radio value={option} disabled={isFormDisabled} />
+                                  </div>
                                 ))}
                               </Radio.Group>
                             </Form.Item>
@@ -276,7 +257,7 @@ const FormExam = ({ examId }: FormExamProps) => {
                             label="Giải thích (explanation)"
                             name={[name, 'explanation']}
                           >
-                            <Input.TextArea placeholder="Nhập giải thích (nếu có)" rows={2} disabled={isFormDisabled} />
+                            <MathPreviewInput placeholder="Nhập giải thích (hỗ trợ công thức toán học)" rows={2} disabled={isFormDisabled} />
                           </Form.Item>
                           <Form.Item
                             {...restField}
@@ -301,12 +282,7 @@ const FormExam = ({ examId }: FormExamProps) => {
         </Row>
         {!view && (
           <Form.Item>
-            <Button 
-              type="primary" 
-              htmlType="submit" 
-              loading={isLoading}
-              size="large"
-            >
+            <Button type="primary" htmlType="submit" loading={isLoading} size="large">
               {buttonText}
             </Button>
           </Form.Item>
@@ -316,4 +292,4 @@ const FormExam = ({ examId }: FormExamProps) => {
   );
 };
 
-export default FormExam; 
+export default FormExam;
