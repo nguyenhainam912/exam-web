@@ -14,7 +14,7 @@ const MainLayout = () => {
     <Layout style={{ minHeight: '100vh'}}>
       <HeaderComponent />
       <Layout >
-        <SiderComponent />
+        {/* <SiderComponent /> */}
         <Layout style={{margin: '0 10px', paddingTop: `calc(${HEADER_HEIGHT} + 5px)`}}>
             <Card className='card-main'>
               <Content >

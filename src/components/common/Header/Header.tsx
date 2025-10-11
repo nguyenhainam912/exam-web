@@ -1,44 +1,66 @@
-
 import { Layout, theme } from 'antd';
 import { Link } from 'react-router-dom';
 import Actions from './Actions/Actions';
+import SiderMenu from '@/components/common/Sider/Sider';
+import styles from './Header.module.css';
+import { useEffect, useState } from 'react';
+import { ClockCircleOutlined } from '@ant-design/icons';
 
-const { Header, } = Layout;
+const { Header } = Layout;
 
-
-
-const HeaderComponent = ({children} : any) => {
+const HeaderComponent = ({ children }: any) => {
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer },
   } = theme.useToken();
+
+  // Clock component (local)
+  const Clock = () => {
+    const [now, setNow] = useState<Date>(new Date());
+    useEffect(() => {
+      const id = setInterval(() => setNow(new Date()), 1000);
+      return () => clearInterval(id);
+    }, []);
+    return (
+      <div className={styles.timer}>
+        <ClockCircleOutlined style={{ marginRight: 8 }} />
+        <span>{now.toLocaleTimeString()}</span>
+      </div>
+    );
+  };
+
   return (
     <Header
-      style={{
-        zIndex: 999,
-        top: 0,
-        left: 0,
-        right: 0,
-        padding: '0 36px', 
-        background: colorBgContainer,
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        height: 56, 
-        position: "fixed",
-        boxShadow: 'rgba(0, 21, 41, 0.08) 0px 1px 4px',
-      }}
+      className={styles.header}
+      style={{ /* fallback to theme token if needed */ background: colorBgContainer || 'transparent' }}
     >
-      <div style={{ display: 'flex', alignItems: 'center', minWidth: '300px' }}>
-        <Link to='/' style={{display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-        <img
-          src="/_logo2.png"
-          alt="Logo"
-          style={{ width: 36, height: 36, marginRight: 16 }} 
-        />
+      {/* left: logo + title */}
+      <div className={styles.left}>
+        <Link to="/" className={styles.logoLink}>
+          <img src="/_logo2.png" alt="Logo" className={styles.logo} />
         </Link>
-        <Link to='/' style={{color: '#1890ff', fontSize: 20, fontWeight: '600' }}>Hệ thống quản lý đề thi</Link>
+        <Link to="/" className={styles.titleLink}>Hệ thống quản lý đề thi</Link>
       </div>
-      <Actions />
+
+      {/* center: menu */}
+      <div className={styles.menuWrapper}>
+        <div className={styles.menuInner}>
+          <SiderMenu
+            mode="horizontal"
+            style={{
+              borderBottom: 'none',
+              whiteSpace: 'nowrap',
+              width: '100%',
+              minWidth: 'max-content',
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Actions: fixed to right */}
+      <div className={styles.actions}>
+        <Clock />
+        <Actions />
+      </div>
     </Header>
   );
 };
