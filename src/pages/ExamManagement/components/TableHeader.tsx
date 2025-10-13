@@ -70,13 +70,15 @@ const TableHeader = memo(({
         />
       )}
       {showUploadButton && onUpload && (
-        <Button 
-          icon={<UploadOutlined />}
-          onClick={onUpload}
-          style={{ marginLeft: 5, marginTop: 5 }}
-        >
-          {uploadButtonText}
-        </Button>
+        <Access permission={ALL_PERMISSIONS.EXAMS?.UPLOAD_FILE} hideChildren={true}>
+          <Button 
+            icon={<UploadOutlined />}
+            onClick={onUpload}
+            style={{ marginLeft: 5, marginTop: 5 }}
+          >
+            {uploadButtonText}
+          </Button>
+        </Access>
       )}
       {showAddButton && (
         <Access permission={ALL_PERMISSIONS.EXAMS?.CREATE} hideChildren={true}>
@@ -96,4 +98,4 @@ const TableHeader = memo(({
 
 TableHeader.displayName = 'TableHeader';
 
-export default TableHeader; 
+export default TableHeader;
