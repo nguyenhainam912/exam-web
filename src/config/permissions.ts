@@ -67,5 +67,18 @@ export const ALL_PERMISSIONS = {
     GET_BY_ID: { method: "GET", apiPath: "/questions/:id", module: "QUESTIONS" },
     UPDATE: { method: "PUT", apiPath: "/questions/:id", module: "QUESTIONS" },
     DELETE: { method: "DELETE", apiPath: "/questions/:id", module: "QUESTIONS" },
-  }
+  },
+
+  EXAM_CHANGE_REQUESTS: {
+    CREATE: { method: "POST", apiPath: "/exam-change-requests", module: "EXAM_CHANGE_REQUESTS" },
+    GET_BY_EXAM: { method: "GET", apiPath: "/exam-change-requests/by-exam/:examId", module: "EXAM_CHANGE_REQUESTS" },
+    GET_PAGINATE: { method: "GET", apiPath: "/exam-change-requests/pageable", module: "EXAM_CHANGE_REQUESTS" },
+    GET_BY_ID: { method: "GET", apiPath: "/exam-change-requests/:id", module: "EXAM_CHANGE_REQUESTS" },
+    REVIEW: { method: "PUT", apiPath: "/exam-change-requests/:id/review", module: "EXAM_CHANGE_REQUESTS" },
+  },
+
+  NOTIFICATIONS: {
+    GET: { method: "GET", apiPath: "/notify/notifications", module: "NOTIFICATIONS" },
+    MARK_AS_READ: { method: "POST", apiPath: "/notify/mark-as-read", module: "NOTIFICATIONS" },
+  },
 };

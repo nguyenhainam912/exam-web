@@ -56,7 +56,7 @@ export const useSocketNotification = ({ userId, onNotification }: UseSocketNotif
     isConnectingRef.current = true;
     currentUserIdRef.current = userId;
 
-    const SOCKET_URL = import.meta.env.VITE_API_NOTIFY_URL || "http://localhost:3002";
+    const SOCKET_URL = import.meta.env.VITE_API_NOTIFY_URL || "http://localhost:3003";
     
     console.log('Creating new socket connection for userId:', userId);
 

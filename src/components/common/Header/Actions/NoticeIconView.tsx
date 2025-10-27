@@ -1,11 +1,9 @@
 import {
   BellOutlined,
   CheckOutlined,
-  DeleteOutlined,
 } from '@ant-design/icons';
 
-import { Notification } from '@/services/Notification';
-import { getNotification, putNotification } from '@/services/Notification/Notification';
+import { getNotification, markSingleNotificationAsRead, markNotificationsAsRead } from '@/services/Notification/Notification';
 import { useAppStore } from '@/stores/appStore';
 import { useSocketNotification } from '@/hooks/useSocketNotification';
 import { Avatar, Badge, Button, List, Popover, Space, Tabs, TabsProps } from 'antd';
@@ -21,21 +19,15 @@ const NoticeIconView = () => {
   const [page, setPage] = useState(1)
   const [popoverVisible, setPopoverVisible] = useState(false);
 
-  // Sử dụng custom hook để quản lý socket - chỉ tạo 1 lần duy nhất
   useSocketNotification({
     userId: currentUser?.userId,
     onNotification: (data: any) => {
       console.log("Received notification in component:", data);
-      // Tránh thêm trùng lặp nếu đã có id
-      setNotiData(prev => {
-        if (data && data._id && prev.some(n => n._id === data._id)) return prev;
-        return [data, ...prev];
-      });
-      setTotalNoti(prev => prev + 1);
+      // Refresh lại dữ liệu từ API khi có notification mới
+      fetchApi(1);
     }
   });
 
-  // Fetch notifications from API
   const fetchApi = async (page: number) => {
     if(currentUser && currentUser.userId) {
       try {
@@ -47,13 +39,17 @@ const NoticeIconView = () => {
         const result = res?.data?.result || [];
         if(page === 1) {
           setNotiData(result);
+          // Đếm số notification chưa đọc (isRead === false)
+          const unreadCount = result.filter((noti: any) => !noti.isRead).length;
+          setTotalNoti(unreadCount);
         } else {
-          setNotiData(prev => [
-            ...prev,
-            ...result
-          ]);
+          setNotiData(prev => {
+            const updated = [...prev, ...result];
+            const unreadCount = updated.filter((noti: any) => !noti.isRead).length;
+            setTotalNoti(unreadCount);
+            return updated;
+          });
         }
-        setTotalNoti(res?.data?.total || 0);
       } catch (error) {
         console.error('Error fetching notifications:', error);
       }
@@ -64,26 +60,24 @@ const NoticeIconView = () => {
     fetchApi(page)
   }, [page, currentUser])
 
-  const loadmore = useCallback(() => {
-    if( notiData?.length < totalNoti && !(totalNoti - notiData?.length < 10) ) {
-      setPage(prev => prev + 1)
-    }
-  }, [notiData, totalNoti])
 
-  const handlePutNoti = async (noti: Notification.NotiRecord) => {
+  const handlePutNoti = async (noti: any) => {
     try {
-      if (noti && noti.status === 0) {
-        const res = await putNotification(noti?.notiId, {status: 1})
-        if(res?.status === 200){
-          setPage(1)
+      if (noti && !noti.isRead) {
+        const res = await markSingleNotificationAsRead(noti?._id);
+        if (res) {
+          // Cập nhật UI ngay lập tức
+          setNotiData(prev =>
+            prev.map(item =>
+              item._id === noti._id 
+                ? { ...item, isRead: true }
+                : item
+            )
+          );
+          // Giảm số lượng notification chưa đọc
+          setTotalNoti(prev => prev > 0 ? prev - 1 : 0);
+          console.log('Đã đánh dấu thông báo là đã đọc');
         }
-      }
-      const notiType: string = noti?.info?.type
-      switch (notiType) {
-        case "HOP_DONG":
-          navigate('/kho/quanlykho')
-          break;
-        default:
       }
     } catch (error) {
       console.error('Error updating notification:', error);
@@ -91,67 +85,86 @@ const NoticeIconView = () => {
   }
 
   const handleCheckAllNoti = async () => {
-    // Implementation for mark all as read
-    console.log('Mark all as read');
+    try {
+      // Lấy danh sách ID của tất cả notification chưa đọc
+      const unreadIds = notiData
+        .filter((noti: any) => !noti.isRead)
+        .map((noti: any) => noti._id);
+
+      if (unreadIds.length === 0) {
+        console.log('Không có notification chưa đọc');
+        return;
+      }
+
+      // Gọi API mark all as read
+      const res = await markNotificationsAsRead(unreadIds);
+      if (res) {
+        // Cập nhật UI ngay lập tức
+        setNotiData(prev =>
+          prev.map(item =>
+            !item.isRead ? { ...item, isRead: true } : item
+          )
+        );
+        // Reset totalNoti về 0
+        setTotalNoti(0);
+        console.log('Đã đánh dấu tất cả thông báo là đã đọc');
+      }
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+    }
   }
 
   const renderNotiList = (filterUnRead?: boolean) => {
-    const filterNoti = filterUnRead ? notiData?.filter(noti => noti?.status === 0) : notiData;
+    const filterNoti = filterUnRead 
+      ? notiData?.filter((noti: any) => !noti?.isRead) 
+      : notiData;
     return (
       <List
         itemLayout="horizontal"
         dataSource={filterNoti}
-        renderItem={(item) => (
+        renderItem={(item: any) => (
           <List.Item
             style={{
               padding: '12px 16px',
-              background: item.status === 0 ? '#f0f5ff' : '#fff',
+              background: !item.isRead ? '#f0f5ff' : '#fff',
               borderBottom: '1px solid #f0f0f0',
               transition: 'background 0.3s',
               cursor: 'pointer',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = item.status === 0 ? '#d2e1ff' : '#e0e0e0')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = item.status === 0 ? '#f0f5ff' : '#fff')}
+            onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = !item.isRead ? '#d2e1ff' : '#e0e0e0')}
+            onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => (e.currentTarget.style.background = !item.isRead ? '#f0f5ff' : '#fff')}
             onClick={() => handlePutNoti(item)}
             actions={[
-              item.status === 0 ? (
+              !item.isRead ? (
                 <Button
                   type="link"
                   size="small"
                   icon={<CheckOutlined />}
-                  onClick={(e) => {
+                  onClick={(e: React.MouseEvent<HTMLElement>) => {
                     e.stopPropagation();
                     handlePutNoti(item);
                   }}
-                  style={{ color: '#1890ff' }}
+                  style={{ color: '#8B5CF6' }}
                 />
               ) : null,
-              <Button
-                type="link"
-                size="small"
-                icon={<DeleteOutlined />}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Handle delete
-                }}
-                style={{ color: '#ff4d4f' }}
-              />,
             ]}
           >
             <List.Item.Meta
               avatar={
-                <Badge dot={item.status === 0} color="#1890ff">
+                <Badge dot={!item.isRead} color="#8B5CF6">
                   <Avatar
                     icon={<BellOutlined />}
-                    style={{ backgroundColor: '#e6f7ff', color: '#1890ff' }}
+                    style={{ backgroundColor: '#e6f7ff', color: '#8B5CF6' }}
                   />
                 </Badge>
               }
-              title={<span style={{ fontWeight: item.status === 0 ? 'bold' : 'normal' }}>{item.title}</span>}
+              title={<span style={{ fontWeight: !item.isRead ? 'bold' : 'normal' }}>{item.subject}</span>}
               description={
                 <Space direction="vertical" size={2}>
                   <span style={{ color: '#595959' }}>{item.content}</span>
-                  <span style={{ color: '#8c8c8c', fontSize: 12 }}>{item.time}</span>
+                  <span style={{ color: '#8c8c8c', fontSize: 12 }}>
+                    {new Date(item.createdAt).toLocaleString('vi-VN')}
+                  </span>
                 </Space>
               }
             />
@@ -170,7 +183,7 @@ const NoticeIconView = () => {
     },
     {
       key: '2',
-      label: 'Chưa đọc',
+      label: `Chưa đọc (${notiData.filter(n => !n.isRead).length})`,
       children: renderNotiList(true),
     },
   ];
@@ -212,7 +225,7 @@ const NoticeIconView = () => {
           position: 'absolute',
           top: -4,
           right: 2,
-          background: '#ff4d4f',
+          background: '#8B5CF6',
           color: '#fff',
           borderRadius: '50%',
           width: 22,
