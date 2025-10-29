@@ -2,6 +2,8 @@ import { Card, Col, Row, Typography } from 'antd';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router';
 import Dashboard from '../Dashboard/Dashboard';
+import Access from '@/components/share/access';
+import { ALL_PERMISSIONS } from '@/config/permissions';
 
 const Home = () => {
   const navigate = useNavigate()
@@ -25,9 +27,9 @@ const Home = () => {
           </Typography.Title>
         </div>
       </Card>
-      
-      {/* Dashboard */}
-      <Dashboard />
+      <Access permission={ALL_PERMISSIONS.DASHBOARD.GET} hideChildren={true}>
+        <Dashboard />
+      </Access>
     </>
   );
 };
