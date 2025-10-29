@@ -1,4 +1,8 @@
 export const ALL_PERMISSIONS = {
+  DASHBOARD: {
+    GET: { method: "GET", apiPath: "/dashboard", module: "DASHBOARD" },
+  },
+
   USERS: {
     CREATE: { method: "POST", apiPath: "/user", module: "USER" },
     GET_PAGINATE: { method: "GET", apiPath: "/user", module: "USER" },
