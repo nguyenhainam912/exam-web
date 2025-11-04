@@ -1,10 +1,9 @@
-
 import Footer from '@/components/common/Footer/Footer';
 import HeaderComponent from '@/components/common/Header/Header';
-import SiderComponent from '@/components/common/Sider/Sider';
 import { HEADER_HEIGHT } from '@/utils/spacing';
 import { Card, Layout } from 'antd';
 import { Outlet } from 'react-router-dom';
+import ChatFloating from '@/components/common/Chat/ChatFloating';
 const { Content } = Layout;
 
 
@@ -24,6 +23,9 @@ const MainLayout = () => {
           <Footer />
         </Layout>
       </Layout>
+
+      {/* chat floating component */}
+      <ChatFloating />
     </Layout>
   );
 };
