@@ -66,9 +66,10 @@ const FilterPopover = memo(({
 }: BaseFilterPopoverProps) => (
   <Popover
     placement={placement}
+    destroyTooltipOnHide={false}
     title={title}
     content={
-      <Card style={{ width }} key={filterKey}>
+      <Card style={{ width }}>
         <Form
           layout="horizontal"
           labelAlign="left"
@@ -114,5 +115,5 @@ const FilterPopover = memo(({
     </Button>
   </Popover>
 ));
-
+ 
 export default FilterPopover;

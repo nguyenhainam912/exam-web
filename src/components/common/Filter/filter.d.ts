@@ -15,7 +15,7 @@ export interface BaseFilterPopoverProps {
   form: any;
   onFilter: () => void;
   onClearFilter: () => void;
-  filterKey: number;
+  filterKey?: number;
   title?: string;
   width?: number;
   placement?: 'bottomLeft' | 'bottomRight' | 'topLeft' | 'topRight';

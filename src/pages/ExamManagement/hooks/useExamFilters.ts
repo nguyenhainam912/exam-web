@@ -14,14 +14,34 @@ export const useExamFilters = ({ cond, setCondition, page, limit }: UseExamFilte
   const [filterKey, setFilterKey] = useState(0);
 
   useEffect(() => {
-    if (filterForm) {
-      filterForm.setFieldsValue({
-        title: cond.title || undefined,
-        status: cond.status || undefined,
-        subjectId: cond.subjectId || undefined,
-        gradeLevelId: cond.gradeLevelId || undefined,
-        examTypeId: cond.examTypeId || undefined,
+    if (!filterForm) return;
+
+    // Nếu user đang chỉnh trường trên form thì không ghi đè
+    try {
+      const isTouched = filterForm.isFieldsTouched();
+      if (isTouched) return;
+    } catch (e) {
+      // ignore if method not available
+    }
+
+    const newValues = {
+      title: cond?.title ?? undefined,
+      status: cond?.status ?? undefined,
+      subjectId: cond?.subjectId ?? undefined,
+      gradeLevelId: cond?.gradeLevelId ?? undefined,
+      examTypeId: cond?.examTypeId ?? undefined,
+    };
+
+    // tránh gọi setFieldsValue nếu giống giá trị hiện tại
+    try {
+      const current = filterForm.getFieldsValue();
+      const same = Object.keys(newValues).every((k) => {
+        // @ts-ignore
+        return current[k] === (newValues as any)[k];
       });
+      if (!same) filterForm.setFieldsValue(newValues);
+    } catch {
+      filterForm.setFieldsValue(newValues);
     }
   }, [cond, filterForm]);
 
@@ -54,7 +74,6 @@ export const useExamFilters = ({ cond, setCondition, page, limit }: UseExamFilte
     setCondition(newCond);
     setTextSearch('');
     filterForm.resetFields();
-    setFilterKey(prev => prev + 1);
   }, [page, limit, setCondition, filterForm]);
 
   return {
@@ -65,4 +84,4 @@ export const useExamFilters = ({ cond, setCondition, page, limit }: UseExamFilte
     handleFilter,
     handleClearFilter,
   };
-}; 
+};

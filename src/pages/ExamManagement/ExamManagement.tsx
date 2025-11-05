@@ -19,6 +19,9 @@ import Access from '@/components/share/access';
 import { useExamFilters } from './hooks/useExamFilters';
 import { useExamActions } from './hooks/useExamActions';
 import { FilterField } from '@/components/common/Filter/filter';
+import { useSubjectQuery } from '@/hooks/react-query/useSubject/useSubjectQuery';
+import { useGradeLevelQuery } from '@/hooks/react-query/useGradeLevel/useGradeLevelQuery';
+import { useExamTypeQuery } from '@/hooks/react-query/useExamType/useExamTypeQuery';
 
 const COLUMN_WIDTHS = {
   index: 80,
@@ -34,6 +37,9 @@ const COLUMN_WIDTHS = {
 const ExamManagement = () => {
   const { page, limit, cond, setCondition, setRecord, setView, setEdit, setVisibleForm, edit, view } = useExamStore();
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
+  const [subjectOptions, setSubjectOptions] = useState<{ label: string; value: string }[]>([]);
+  const [gradeOptions, setGradeOptions] = useState<{ label: string; value: string }[]>([]);
+  const [examTypeOptions, setExamTypeOptions] = useState<{ label: string; value: string }[]>([]);
 
   // Custom hooks
   const {
@@ -103,6 +109,20 @@ const ExamManagement = () => {
     message.success(`Đã tạo đề thi với ${uploadedQuestions.length} câu hỏi từ file upload!`);
   }, [setRecord, setEdit, setView, setVisibleForm]);
 
+  // use react-query hooks to load option lists
+  const { data: subjectList = [], isLoading: loadingSubject } = useSubjectQuery({ page: 1, limit: 100 });
+  const { data: gradeLevelList = [], isLoading: loadingGradeLevel } = useGradeLevelQuery({ page: 1, limit: 100 });
+  const { data: examTypeList = [], isLoading: loadingExamType } = useExamTypeQuery({ page: 1, limit: 100 });
+
+  useEffect(() => {
+    const mapToOptions = (arr: any[]) =>
+      (arr || []).map((it) => ({ label: it.name || it.title || it.label || String(it._id), value: it._id }));
+
+    setSubjectOptions(mapToOptions(subjectList || []));
+    setGradeOptions(mapToOptions(gradeLevelList || []));
+    setExamTypeOptions(mapToOptions(examTypeList || []));
+  }, [subjectList, gradeLevelList, examTypeList]);
+
   // Filter fields configuration
   const filterFields: FilterField[] = useMemo(() => [
     {
@@ -128,23 +148,23 @@ const ExamManagement = () => {
       label: 'Môn học',
       placeholder: 'Chọn môn học',
       type: 'select',
-      options: [],
+      options: subjectOptions,
     },
     {
       name: 'gradeLevelId',
       label: 'Khối lớp',
       placeholder: 'Chọn khối lớp',
       type: 'select',
-      options: [],
+      options: gradeOptions,
     },
     {
       name: 'examTypeId',
       label: 'Loại đề',
       placeholder: 'Chọn loại đề',
       type: 'select',
-      options: [],
+      options: examTypeOptions,
     },
-  ], []);
+  ], [subjectOptions, gradeOptions, examTypeOptions]);
 
   // Memoized columns
   const columns: IColumn<any>[] = useMemo(() => [
@@ -258,4 +278,4 @@ const ExamManagement = () => {
   );
 };
 
-export default ExamManagement; 
+export default ExamManagement;
