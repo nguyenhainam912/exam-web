@@ -4,12 +4,14 @@ import useRoleStore from '@/stores/role';
 import { usePostRoleMutation, usePutRoleMutation } from '@/hooks/react-query/useRole/useRoleMutation';
 import rules from '@/utils/rules';
 import { usePermissionQuery } from '@/hooks/react-query/usePermission/usePermissionQuery';
+import { useSubjectQuery } from '@/hooks/react-query/useSubject/useSubjectQuery'; // added
 
 interface FormValues {
   name: string;
   description: string;
   isActive: boolean;
   permissions: string[];
+  subjects?: string[]; // added
 }
 
 const FormRole = () => {
@@ -29,6 +31,9 @@ const FormRole = () => {
   // Lấy danh sách permission
   const { data: permissionsData, isLoading: isLoadingPermissions } = usePermissionQuery({ page: 1, limit: 1000 });
 
+  // Lấy danh sách subjects
+  const { data: subjectData = [], isLoading: isLoadingSubjects } = useSubjectQuery({ page: 1, limit: 1000 });
+
   // Group permissions by module
   const groupedPermissions = useMemo(() => {
     const groups: Record<string, any[]> = {};
@@ -40,17 +45,53 @@ const FormRole = () => {
     return groups;
   }, [permissionsData]);
 
+  // Subject options for Select
+  const subjectOptions = useMemo(() => {
+    return (subjectData || []).map((s: any) => ({ label: s.name || s.title || s.label, value: s._id }));
+  }, [subjectData]);
+
   // State để quản lý quyền đã chọn
   const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  // State để quản lý môn học đã chọn
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
 
   // Đồng bộ với form khi record thay đổi
   useEffect(() => {
+    // normalize helpers (handle string ids or object items)
+    const normId = (v: any) => (typeof v === 'string' ? v : v?._id ?? v?.id ?? v?.value ?? '');
+    const normArr = (arr: any[] | undefined) => (arr || []).map(normId).filter(Boolean);
+
+    // permissions
     if (record?.permissions) {
-      setSelectedPermissions(record.permissions.map((p: any) => typeof p === 'string' ? p : p._id));
+      setSelectedPermissions(record.permissions.map((p: any) => (typeof p === 'string' ? p : p._id ?? p?.id)));
     } else {
       setSelectedPermissions([]);
     }
-  }, [record]);
+
+    // subjects
+    const subs = normArr(record?.subjects);
+    setSelectedSubjects(subs);
+
+    if (record?._id && (edit || view)) {
+      const formValues: FormValues = {
+        name: record.name || '',
+        description: record.description || '',
+        isActive: record.isActive ?? true,
+        permissions: record.permissions || [],
+        subjects: subs,
+      };
+      // set form values after normalizing
+      try {
+        form.setFieldsValue(formValues);
+      } catch {
+        // ignore
+      }
+    } else {
+      form.resetFields();
+      setSelectedPermissions([]);
+      setSelectedSubjects([]);
+    }
+  }, [record, edit, view, form, /* keep subjectData deps out to avoid extra resets */]);
 
   const mutationCallbacks = useMemo(() => ({
     onSuccess: () => {
@@ -71,23 +112,10 @@ const FormRole = () => {
     },
   });
 
-  useEffect(() => {
-    if (record?._id && (edit || view)) {
-      const formValues: FormValues = {
-        name: record.name || '',
-        description: record.description || '',
-        isActive: record.isActive ?? true,
-        permissions: record.permissions || [],
-      };
-      form.setFieldsValue(formValues);
-    } else {
-      form.resetFields();
-    }
-  }, [record, edit, view, form]);
-
-  // Khi form submit, cập nhật lại selectedPermissions vào form
+  // Khi form submit, cập nhật lại selectedPermissions và selectedSubjects vào form
   const handleSubmit = (values: FormValues) => {
     values.permissions = selectedPermissions;
+    values.subjects = selectedSubjects;
     if (edit && record?._id) {
       putRole({ id: record._id, body: values });
     } else {
@@ -164,6 +192,27 @@ const FormRole = () => {
               <Input.TextArea placeholder="Nhập mô tả vai trò" rows={2} /> 
             </Form.Item>
           </Col>
+
+          <Col span={24}>
+            <Form.Item 
+              label="Môn học áp dụng" 
+              name="subjects"
+            >
+              {isLoadingSubjects ? (
+                <Spin />
+              ) : (
+                <Select
+                  mode="multiple"
+                  placeholder="Chọn môn học"
+                  value={selectedSubjects}
+                  onChange={(vals: string[]) => setSelectedSubjects(vals)}
+                  options={subjectOptions}
+                  allowClear
+                />
+              )}
+            </Form.Item>
+          </Col>
+
           <Col span={24}>
             <Form.Item 
               label="Quyền hạn" 
@@ -263,4 +312,4 @@ const FormRole = () => {
   );
 };
 
-export default FormRole; 
+export default FormRole;

@@ -5,6 +5,7 @@ export declare namespace Role {
     description: string;
     isActive: boolean;
     permissions: string[];
+     subjects: string[];
   }
 }
 
