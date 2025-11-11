@@ -1,4 +1,7 @@
-import { Form, Input, Button, Card, Row, Col, Select, InputNumber, Slider, Radio, Collapse } from 'antd';
+import { Form, Input, Button, Card, Row, Col, Select, InputNumber, Slider, Radio, Collapse, Upload, Switch, message } from 'antd';
+import type { UploadFile } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
+import { uploadMulti } from '@/services/UploadMulti/uploadMulti'; // <-- import service uploadMulti
 import { useEffect, useMemo, useCallback } from 'react';
 import useExamStore from '@/stores/exam';
 import { usePostExamMutation, usePutExamMutation } from '@/hooks/react-query/useExam/useExamMutation';
@@ -29,6 +32,7 @@ interface QuestionForm {
   explanation?: string;
   difficulty?: number;
   isActive?: boolean;
+  imageUrls?: string[]; // thêm trường imageUrls
 }
 
 const FormExam = ({ examId }: FormExamProps) => {
@@ -86,6 +90,7 @@ const FormExam = ({ examId }: FormExamProps) => {
           explanation: q.explanation || '',
           difficulty: q.difficulty || 1,
           isActive: q.isActive !== false,
+          imageUrls: q.metadata?.imageUrls || [], // lấy imageUrls từ metadata nếu có
         })),
       };
       form.setFieldsValue(formValues);
@@ -107,6 +112,7 @@ const FormExam = ({ examId }: FormExamProps) => {
           explanation: q.explanation || '',
           difficulty: q.difficulty || 1,
           isActive: q.isActive !== false,
+          imageUrls: q.metadata?.imageUrls || [],
         })),
       };
       form.setFieldsValue(formValues);
@@ -117,13 +123,15 @@ const FormExam = ({ examId }: FormExamProps) => {
 
   const handleSubmit = useCallback((values: FormValues) => {
     const questions = (values.questions || []).map(q => {
-      const { correctAnswer, ...rest } = q;
+      const { correctAnswer, imageUrls, ...rest } = q as any;
       let correctIndex = -1;
       if (correctAnswer) {
         correctIndex = ['A', 'B', 'C', 'D'].indexOf(correctAnswer);
       }
       return {
         ...rest,
+        // đưa imageUrls vào metadata như bạn yêu cầu
+        metadata: { imageUrls: imageUrls || [] },
         correctAnswers: correctIndex !== -1 ? [correctIndex] : [],
       };
     });
@@ -197,26 +205,113 @@ const FormExam = ({ examId }: FormExamProps) => {
               {(fields, { add, remove }) => (
                 <>
                   <div style={{ marginBottom: 8, fontWeight: 600 }}>Danh sách câu hỏi</div>
-                  <Collapse accordion>
-                    {fields.map(({ key, name, ...restField }) => (
-                      <Collapse.Panel
-                        key={key}
-                        header={`Câu hỏi ${name + 1}`}
-                        extra={
-                          !isFormDisabled && (
-                            <Button danger onClick={e => { e.stopPropagation(); remove(name); }} size="small">Xóa</Button>
-                          )
+                  <Collapse>
+                    {fields.map(({ key, name, ...restField }) => {
+                      // helper: tạo fileList từ imageUrls trong form state
+                      const getFileList = (): UploadFile<any>[] => {
+                        const questions = form.getFieldValue('questions') || [];
+                        const maybe = questions?.[name]?.imageUrls;
+                        const urls: any[] = Array.isArray(maybe) ? maybe : (maybe ? [maybe] : []);
+                        return urls
+                          .map((u, idx) => {
+                            const url = typeof u === 'string' ? u : (u && (u.url || u.thumbUrl)) || '';
+                            if (!url) return null;
+                            return {
+                              uid: String(idx),
+                              name: `image-${idx}`,
+                              status: 'done' as UploadFile<any>['status'],
+                              url,
+                              thumbUrl: url,
+                            } as UploadFile<any>;
+                          })
+                          .filter(Boolean) as UploadFile<any>[];
+                      };
+
+                      // upload từng file ngay khi chọn (beforeUpload được gọi cho mỗi file)
+                      const handleBeforeUpload = async (file: File) => {
+                        const questions = form.getFieldValue('questions') || [];
+                        const current = questions?.[name]?.imageUrls;
+                        const existingUrls: string[] = Array.isArray(current) ? current.slice() : [];
+                        const hideLoading = message.loading({ content: 'Đang tải ảnh...', key: file.name, duration: 0 });
+                        try {
+                          const resp: any = await uploadMulti(file);
+                          hideLoading();
+
+                          // chuẩn hoá response thành mảng url (hỗ trợ nhiều shape)
+                          const resolveUrlFromItem = (item: any): string | null => {
+                            if (!item) return null;
+                            if (typeof item === 'string') return item;
+                            // common keys
+                            return item.publicUrl || item.url || item.downloadUrl || item.path || item.public_url || null;
+                          };
+
+                          let uploadedUrls: string[] = [];
+                          if (Array.isArray(resp)) {
+                            uploadedUrls = resp.map(resolveUrlFromItem).filter(Boolean) as string[];
+                          } else if (resp && typeof resp === 'object') {
+                            // resp may be { data: {...} } or {...}
+                            if (Array.isArray(resp.data)) {
+                              uploadedUrls = resp.data.map(resolveUrlFromItem).filter(Boolean) as string[];
+                            } else if (resp.data && typeof resp.data === 'object') {
+                              const u = resolveUrlFromItem(resp.data);
+                              if (u) uploadedUrls = [u];
+                            } else {
+                              const u = resolveUrlFromItem(resp);
+                              if (u) uploadedUrls = [u];
+                            }
+                          }
+
+                          const final = [...existingUrls, ...uploadedUrls];
+                          questions[name] = { ...questions[name], imageUrls: final };
+                          form.setFieldsValue({ questions });
+
+                          if (uploadedUrls.length) {
+                            message.success('Tải ảnh lên thành công', 1);
+                          } 
+                        } catch (err) {
+                          hideLoading();
+                          // eslint-disable-next-line no-console
+                          console.error('Upload file failed', err);
+                          message.error('Tải ảnh thất bại. Vui lòng thử lại.');
                         }
-                      >
-                        <Card type="inner" bordered={false} style={{ margin: 0, padding: 0, boxShadow: 'none' }}>
+                        // return false để ngăn antd thực hiện upload mặc định
+                        return false;
+                      };
+
+                      return (
+                        <Collapse.Panel
+                          key={key}
+                          header={
+                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                              <div style={{ flex: 1 }}>
+                                Câu hỏi {name + 1}
+                              </div>
+                              {!isFormDisabled && (
+                                <Button
+                                  type="link"
+                                  danger
+                                  onClick={e => {
+                                    e.stopPropagation();
+                                    remove(name);
+                                  }}
+                                >
+                                  Xóa
+                                </Button>
+                              )}
+                            </div>
+                          }
+                        >
                           <Form.Item
-                            {...restField}
                             label="Nội dung câu hỏi"
                             name={[name, 'content']}
                             rules={rules.required}
                           >
-                            <MathPreviewInput placeholder="Nhập nội dung câu hỏi (hỗ trợ công thức toán học)" rows={2} disabled={isFormDisabled} />
+                            <MathPreviewInput
+                              placeholder="Nhập nội dung câu hỏi (hỗ trợ công thức toán học)"
+                              disabled={isFormDisabled}
+                            />
                           </Form.Item>
+
                           <Form.Item
                             {...restField}
                             label={
@@ -239,10 +334,10 @@ const FormExam = ({ examId }: FormExamProps) => {
                                         noStyle
                                         rules={[{ required: true, message: `Nhập đáp án ${option}` }]}
                                       >
-                                        <MathPreviewInput 
-                                          placeholder={`Đáp án ${option}`} 
+                                        <MathPreviewInput
+                                          placeholder={`Đáp án ${option}`}
                                           rows={1}
-                                          disabled={isFormDisabled} 
+                                          disabled={isFormDisabled}
                                         />
                                       </Form.Item>
                                     </div>
@@ -252,27 +347,85 @@ const FormExam = ({ examId }: FormExamProps) => {
                               </Radio.Group>
                             </Form.Item>
                           </Form.Item>
+
                           <Form.Item
-                            {...restField}
                             label="Giải thích (explanation)"
                             name={[name, 'explanation']}
                           >
-                            <MathPreviewInput placeholder="Nhập giải thích (hỗ trợ công thức toán học)" rows={2} disabled={isFormDisabled} />
+                            <MathPreviewInput
+                              placeholder="Nhập giải thích (hỗ trợ công thức toán học)"
+                              rows={2}
+                              disabled={isFormDisabled}
+                            />
                           </Form.Item>
+
                           <Form.Item
-                            {...restField}
                             label="Độ khó (1-5)"
                             name={[name, 'difficulty']}
+                            rules={rules.required}
                           >
-                            <Slider min={1} max={5} marks={{1:'1',2:'2',3:'3',4:'4',5:'5'}} step={1} disabled={isFormDisabled} style={{ width: '100%' }} />
+                            <Slider
+                              min={1}
+                              max={5}
+                              marks={{1:'1',2:'2',3:'3',4:'4',5:'5'}}
+                              step={1}
+                              disabled={isFormDisabled}
+                            />
                           </Form.Item>
-                        </Card>
-                      </Collapse.Panel>
-                    ))}
+
+                          <Form.Item
+                            label="Trạng thái"
+                            name={[name, 'isActive']}
+                            valuePropName="checked"
+                          >
+                            <Switch
+                              checkedChildren="Kích hoạt"
+                              unCheckedChildren="Ngừng kích hoạt"
+                              disabled={isFormDisabled}
+                            />
+                          </Form.Item>
+
+                          {/* Remove Form.Item name binding to avoid conflicts with controlled fileList */}
+                          <Form.Item label="Hình ảnh">
+                            <Upload
+                              listType="picture-card"
+                              fileList={getFileList()}
+                              beforeUpload={handleBeforeUpload}
+                              onRemove={async file => {
+                                const questions = form.getFieldValue('questions') || [];
+                                const current = questions?.[name]?.imageUrls;
+                                const existingUrls: string[] = Array.isArray(current) ? current.slice() : [];
+                                const fileUrl = (file as any).url || (file as any).thumbUrl || '';
+                                const newUrls = existingUrls.filter(u => u !== fileUrl);
+                                questions[name] = { ...questions[name], imageUrls: newUrls };
+                                form.setFieldsValue({ questions });
+                              }}
+                              onPreview={(file) => window.open((file as any).url || (file as any).thumbUrl)}
+                              accept="image/*"
+                              disabled={isFormDisabled}
+                            >
+                              {!isFormDisabled && (
+                                <div>
+                                  <PlusOutlined />
+                                  <div style={{ marginTop: 8 }}>Tải ảnh lên</div>
+                                </div>
+                              )}
+                            </Upload>
+                          </Form.Item>
+                        </Collapse.Panel>
+                      );
+                    })}
                   </Collapse>
                   {!isFormDisabled && (
-                    <Button type="dashed" onClick={() => add()} block style={{ marginTop: 8 }}>
-                      Thêm câu hỏi
+                    <Button
+                      type="dashed"
+                      onClick={() => {
+                        add();
+                        form.setFieldsValue({ questions: [...form.getFieldValue('questions'), {}] });
+                      }}
+                      style={{ width: '100%', marginTop: 8 }}
+                    >
+                      <PlusOutlined /> Thêm câu hỏi
                     </Button>
                   )}
                 </>
@@ -280,13 +433,11 @@ const FormExam = ({ examId }: FormExamProps) => {
             </Form.List>
           </Col>
         </Row>
-        {!view && (
-          <Form.Item>
-            <Button type="primary" htmlType="submit" loading={isLoading} size="large">
-              {buttonText}
-            </Button>
-          </Form.Item>
-        )}
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={isLoading} disabled={isFormDisabled} style={{ width: '100%' }}>
+            {buttonText}
+          </Button>
+        </Form.Item>
       </Form>
     </Card>
   );
