@@ -95,10 +95,10 @@ const ChangeRequestManagement = () => {
     },
     {
       title: 'Người yêu cầu',
-      dataIndex: 'createdBy',
+      dataIndex: 'requestedByUser',
       align: 'center',
       width: COLUMN_WIDTHS.createdBy,
-      render: (u: any) => u?.name || u?.email || '-',
+      // render: (record: any) => record?.requestedByUser || '-',
     },
     {
       title: 'Thời gian',
@@ -118,7 +118,7 @@ const ChangeRequestManagement = () => {
     },
     {
       title: 'Nội dung',
-      dataIndex: 'content',
+      dataIndex: 'reviewNote',
       align: 'center',
       width: COLUMN_WIDTHS.content,
     },
