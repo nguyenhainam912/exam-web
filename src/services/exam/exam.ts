@@ -50,6 +50,17 @@ export async function uploadExamFile(file: FormData) {
   }
 }
 
+export const generateExamWithAI = async (data: {
+  subjectId: string;
+  gradeLevelId: string;
+  examTypeId: string;
+  numberOfQuestions: number;
+  topics: string;
+}) => {
+  const response = await axiosInstance.post('/exams/generate-exam', data);
+  return response.data;
+};
+
 // Lấy danh sách yêu cầu thay đổi đề thi
 export async function getExamChangeRequests(payload: { page: number; limit: number; cond?: any }) {
   try {

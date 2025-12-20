@@ -13,6 +13,7 @@ import TableHeader from './components/TableHeader';
 import ActionButtons from './components/ActionButtons';
 import FormExam from './components/FormExam';
 import UploadExamModal from './components/UploadExamModal';
+import GenerateExamModal from './components/GenerateExamModal';
 import Access from '@/components/share/access';
 
 // Import hooks
@@ -37,6 +38,7 @@ const COLUMN_WIDTHS = {
 const ExamManagement = () => {
   const { page, limit, cond, setCondition, setRecord, setView, setEdit, setVisibleForm, edit, view } = useExamStore();
   const [uploadModalVisible, setUploadModalVisible] = useState(false);
+  const [generateModalVisible, setGenerateModalVisible] = useState(false);
   const [subjectOptions, setSubjectOptions] = useState<{ label: string; value: string }[]>([]);
   const [gradeOptions, setGradeOptions] = useState<{ label: string; value: string }[]>([]);
   const [examTypeOptions, setExamTypeOptions] = useState<{ label: string; value: string }[]>([]);
@@ -107,6 +109,33 @@ const ExamManagement = () => {
     setVisibleForm(true);
     
     message.success(`Đã tạo đề thi với ${uploadedQuestions.length} câu hỏi từ file upload!`);
+  }, [setRecord, setEdit, setView, setVisibleForm]);
+
+  // Generate handlers
+  const handleGenerate = useCallback(() => {
+    setGenerateModalVisible(true);
+  }, []);
+
+  const handleGenerateSuccess = useCallback((formattedData: any[]) => {
+    // Create a new exam with generated questions data
+    const examData: Partial<Exam.Record> = {
+      title: '',
+      description: '',
+      subjectId: { _id: '', name: '' },
+      gradeLevelId: { _id: '', name: '' },
+      examTypeId: { _id: '', name: '' },
+      duration: 60,
+      status: 'DRAFT',
+      questions: formattedData
+    };
+    
+    // Set the record with generated data and open form
+    setRecord(examData as Exam.Record);
+    setEdit(false);
+    setView(false);
+    setVisibleForm(true);
+    
+    message.success(`Đã tạo đề thi với ${formattedData.length} câu hỏi tự động!`);
   }, [setRecord, setEdit, setView, setVisibleForm]);
 
   // use react-query hooks to load option lists
@@ -264,8 +293,11 @@ const ExamManagement = () => {
           filterFields={filterFields}
           onAdd={handleAdd}
           onUpload={handleUpload}
+          onGenerate={handleGenerate}
           showUploadButton={true}
           uploadButtonText="Upload File"
+          showGenerateButton={true}
+          generateButtonText="Tạo đề tự động"
         />
       </TableBase>
       
@@ -273,6 +305,15 @@ const ExamManagement = () => {
         visible={uploadModalVisible}
         onClose={() => setUploadModalVisible(false)}
         onSuccess={handleUploadSuccess}
+      />
+      
+      <GenerateExamModal
+        visible={generateModalVisible}
+        onClose={() => setGenerateModalVisible(false)}
+        onSuccess={handleGenerateSuccess}
+        subjectOptions={subjectOptions}
+        gradeOptions={gradeOptions}
+        examTypeOptions={examTypeOptions}
       />
     </Access>
   );

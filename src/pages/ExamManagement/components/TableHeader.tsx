@@ -18,10 +18,13 @@ interface TableHeaderProps {
   filterFields: FilterField[];
   onAdd: () => void;
   onUpload?: () => void;
+  onGenerate?: () => void;
   showAddButton?: boolean;
   addButtonText?: string;
   showUploadButton?: boolean;
   uploadButtonText?: string;
+  showGenerateButton?: boolean;
+  generateButtonText?: string;
   showFilter?: boolean;
   showSearch?: boolean;
 }
@@ -37,10 +40,13 @@ const TableHeader = memo(({
   filterFields,
   onAdd,
   onUpload,
+  onGenerate,
   showAddButton = true,
   addButtonText = "Thêm mới",
   showUploadButton = false,
   uploadButtonText = "Upload File",
+  showGenerateButton = true,
+  generateButtonText = "Tạo đề tự động",
   showFilter = true,
   showSearch = true
 }: TableHeaderProps) => (
@@ -78,6 +84,18 @@ const TableHeader = memo(({
           >
             {uploadButtonText}
           </Button>
+        </Access>
+      )}
+      {showGenerateButton && (
+        <Access permission={ALL_PERMISSIONS.EXAMS?.GEN_EXAM} hideChildren={true}>
+            <Button 
+              type="primary" 
+              style={{ marginLeft: 5, marginTop: 5 }}
+              icon={<PlusCircleOutlined />}
+              onClick={onGenerate}
+            >
+              {generateButtonText}
+            </Button>
         </Access>
       )}
       {showAddButton && (

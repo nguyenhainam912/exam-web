@@ -39,6 +39,7 @@ export const ALL_PERMISSIONS = {
     DELETE: { method: "DELETE", apiPath: "/exams/:id", module: "EXAMS" },
     GENERATE_PDF: { method: "POST", apiPath: "/exams/:id/generate-pdf", module: "EXAMS" },
     UPLOAD_FILE: { method: "POST", apiPath: "/exams/upload-file", module: "EXAMS" },
+    GEN_EXAM: { method: "POST", apiPath: "/exams/generate-exam", module: "EXAMS" },
   },
 
   EXAM_TYPES: {
