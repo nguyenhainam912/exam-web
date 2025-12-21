@@ -13,8 +13,8 @@ interface GenerateExamModalProps {
 }
 
 interface GeneratedQuestion {
-  question: string;
-  answers: string;
+  content: string;  // Đổi từ question -> content
+  options: string;  // Đổi từ answers -> options
 }
 
 const GenerateExamModal = ({
@@ -89,8 +89,8 @@ const GenerateExamModal = ({
 
         // Transform data: content -> question, options -> answers
         generatedQuestions = generatedQuestions.map((item: any) => ({
-          question: item.content || item.question || '',
-          answers: item.options || item.answers || ''
+          content: item.content || item.question || '',
+          options: item.options || item.answers || ''
         }));
 
         console.log('Generated questions after transform:', generatedQuestions);

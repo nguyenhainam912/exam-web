@@ -89,8 +89,8 @@ const TableHeader = memo(({
       {showGenerateButton && (
         <Access permission={ALL_PERMISSIONS.EXAMS?.GEN_EXAM} hideChildren={true}>
             <Button 
-              type="primary" 
-              style={{ marginLeft: 5, marginTop: 5 }}
+              // type="primary" 
+              style={{ marginLeft: 5, marginTop: 5, color: '#7c3aed',borderColor: '#7c3aed' }}
               icon={<PlusCircleOutlined />}
               onClick={onGenerate}
             >

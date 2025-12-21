@@ -5,8 +5,8 @@ import { EyeOutlined, EditOutlined, CheckCircleOutlined } from '@ant-design/icon
 const { Title, Paragraph, Text } = Typography;
 
 interface GeneratedQuestion {
-  question: string;
-  answers: string;
+  content: string;  // Đổi từ question -> content
+  options: string;  // Đổi từ answers -> options
 }
 
 interface GeneratePreviewModalProps {
@@ -26,20 +26,30 @@ const GeneratePreviewModal = ({ visible, data, onClose, onConfirm }: GeneratePre
   const parseAnswers = useCallback((answersString: string): string[] => {
     if (!answersString || typeof answersString !== 'string') return ['', '', '', ''];
     
-    // Tách các đáp án A, B, C, D từ chuỗi
-    // Ví dụ: "A. nhà ở.\nB. việc làm.\nC. tài sản.\nD. nhân thân."
-    const lines = answersString.split('\n');
-    const options = ['', '', '', ''];
+    // Tách các đáp án theo dòng (dạng mới không có A. B. C. D.)
+    const lines = answersString.split('\n').map(line => line.trim()).filter(line => line);
     
+    // Nếu có đúng 4 dòng, trả về trực tiếp
+    if (lines.length === 4) {
+      return lines;
+    }
+    
+    // Nếu có format A. B. C. D. thì parse theo cách cũ
+    const options = ['', '', '', ''];
     lines.forEach(line => {
-      const match = line.match(/^([A-D])\. (.+)$/);
+      const match = line.match(/^([A-D])\.\s*(.+)$/);
       if (match) {
-        const index = match[1].charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+        const index = match[1].charCodeAt(0) - 65;
         if (index >= 0 && index < 4) {
-          options[index] = match[2].trim().replace(/\.$/, ''); // Bỏ dấu chấm cuối
+          options[index] = match[2].trim().replace(/\.$/, '');
         }
       }
     });
+    
+    // Nếu không parse được theo format A. B. C. D., trả về lines gốc
+    if (options.every(opt => !opt)) {
+      return lines.concat(['', '', '', '']).slice(0, 4);
+    }
     
     return options;
   }, []);
@@ -78,20 +88,19 @@ const GeneratePreviewModal = ({ visible, data, onClose, onConfirm }: GeneratePre
       : safeData;
 
     return questionsToUse.map(item => {
-      const answers = parseAnswers(item.answers);
-      const question = parseQuestion(item.question);
-      const correctAnswer = parseCorrectAnswer(item.answers);
+      const answers = parseAnswers(item.options);  // Đổi từ item.answers -> item.options
+      const question = parseQuestion(item.content); // Đổi từ item.question -> item.content
       
       return {
         content: question,
-        options: answers, // Mảng 4 đáp án đã được parse
-        correctAnswer: correctAnswer || undefined, // Chỉ set nếu có giá trị, nếu không thì undefined
+        options: answers,
+        correctAnswer: undefined, // Để undefined vì không có thông tin đáp án đúng
         explanation: '',
         difficulty: 1,
         isActive: true
       };
     });
-  }, [safeData, selectedQuestions, parseAnswers, parseQuestion, parseCorrectAnswer]);
+  }, [safeData, selectedQuestions, parseAnswers, parseQuestion]);
 
   const handleConfirm = () => {
     const formattedData = convertToFormData();
@@ -118,7 +127,7 @@ const GeneratePreviewModal = ({ visible, data, onClose, onConfirm }: GeneratePre
   };
 
   const renderQuestion = (item: GeneratedQuestion, index: number) => {
-    const { questionContent, options, correctAnswer } = parseQuestionForDisplay(item.question, item.answers);
+    const { questionContent, options } = parseQuestionForDisplay(item.content, item.options); // Đổi item.question -> item.content, item.answers -> item.options
     const isSelected = selectedQuestions.includes(index);
 
     return (
@@ -152,46 +161,23 @@ const GeneratePreviewModal = ({ visible, data, onClose, onConfirm }: GeneratePre
               {options.map((option, optIndex) => {
                 if (!option.trim()) return null;
                 const letter = String.fromCharCode(65 + optIndex); // A, B, C, D
-                const isCorrect = correctAnswer && correctAnswer === letter; // Chỉ highlight khi có correctAnswer
                 return (
                   <div 
                     key={optIndex} 
                     style={{ 
                       marginLeft: 16,
                       padding: '4px 8px',
-                      backgroundColor: isCorrect ? '#f6ffed' : 'transparent',
-                      border: isCorrect ? '1px solid #52c41a' : 'none',
                       borderRadius: 4,
                       marginTop: 4
                     }}
                   >
-                    <Text strong={!!isCorrect}>
-                      {letter}. {option}
+                    <Text>
+                      {letter}. <span dangerouslySetInnerHTML={{ __html: option }} />
                     </Text>
                   </div>
                 );
               })}
             </div>
-            
-            {/* Chỉ hiển thị đáp án đúng khi thực sự có */}
-            {correctAnswer && (
-              <div>
-                <Text strong>Đáp án đúng:</Text>
-                <div style={{ paddingLeft: 16, marginTop: 4 }}>
-                  <Text 
-                    style={{ 
-                      backgroundColor: '#f6ffed', 
-                      color: '#389e0d', 
-                      padding: '2px 8px', 
-                      borderRadius: 4,
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {correctAnswer}
-                  </Text>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </Card>
