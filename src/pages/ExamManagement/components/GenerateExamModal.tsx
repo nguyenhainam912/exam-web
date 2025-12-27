@@ -30,6 +30,7 @@ const GenerateExamModal = ({
   const [progress, setProgress] = useState(0);
   const [generatedData, setGeneratedData] = useState<GeneratedQuestion[]>([]);
   const [showPreview, setShowPreview] = useState(false);
+  const [examContext, setExamContext] = useState<any>(null);
 
   useEffect(() => {
     if (!visible) {
@@ -43,6 +44,20 @@ const GenerateExamModal = ({
     try {
       const values = await form.validateFields();
       
+      const selectedSubject = subjectOptions.find(opt => opt.value === values.subjectId);
+      const selectedGrade = gradeOptions.find(opt => opt.value === values.gradeLevelId);
+      const selectedExamType = examTypeOptions.find(opt => opt.value === values.examTypeId);
+
+      const enhancedTopics = `Khối ${selectedGrade?.label || ''} - Môn ${selectedSubject?.label || ''} - Loại đề ${selectedExamType?.label || ''}${values.topics ? `. Chủ đề: ${values.topics}` : ''}`;
+      
+      // Lưu context để truyền cho RegenerateModal
+      setExamContext({
+        subjectId: values.subjectId,
+        gradeLevelId: values.gradeLevelId,
+        examTypeId: values.examTypeId,
+        enhancedTopics
+      });
+
       setGenerating(true);
       setProgress(0);
 
@@ -57,13 +72,13 @@ const GenerateExamModal = ({
       }, 300);
 
       try {
-        // Call API to generate exam
+        // Call API - vẫn truyền ID nhưng topics đã gộp
         const response = await generateExamWithAI({
           subjectId: values.subjectId,
           gradeLevelId: values.gradeLevelId,
           examTypeId: values.examTypeId,
           numberOfQuestions: values.numberOfQuestions,
-          topics: values.topics,
+          topics: enhancedTopics, // Topics đã gộp thông tin
         });
 
         clearInterval(progressTimer);
@@ -240,18 +255,6 @@ const GenerateExamModal = ({
               disabled={generating}
             />
           </Form.Item>
-
-          <Form.Item
-            name="topics"
-            label="Chủ đề"
-            rules={[{ required: true, message: 'Vui lòng nhập chủ đề!' }]}
-          >
-            <Input.TextArea
-              placeholder="Ví dụ: Đạo hàm, tích phân, phương trình vi phân"
-              rows={4}
-              disabled={generating}
-            />
-          </Form.Item>
         </Form>
 
         {generating && progress > 0 && (
@@ -265,11 +268,9 @@ const GenerateExamModal = ({
       <GeneratePreviewModal
         visible={showPreview}
         data={generatedData}
-        onClose={() => {
-          console.log('Closing preview modal');
-          setShowPreview(false);
-        }}
+        onClose={() => setShowPreview(false)}
         onConfirm={handleConfirmPreview}
+        examContext={examContext}
       />
     </>
   );
