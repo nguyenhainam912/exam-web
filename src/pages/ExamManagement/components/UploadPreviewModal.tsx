@@ -32,9 +32,11 @@ const UploadPreviewModal = ({ visible, data, onClose, onConfirm }: UploadPreview
     const options = ['', '', '', ''];
     
     lines.forEach(line => {
-      const match = line.match(/^([A-D])\. (.+)$/);
+      // Sửa regex để chấp nhận cả chữ thường và chữ hoa
+      const match = line.match(/^([A-Da-d])\. (.+)$/);
       if (match) {
-        const index = match[1].charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
+        // Chuyển về chữ hoa trước khi tính index
+        const index = match[1].toUpperCase().charCodeAt(0) - 65; // A=0, B=1, C=2, D=3
         if (index >= 0 && index < 4) {
           options[index] = match[2].trim().replace(/\.$/, ''); // Bỏ dấu chấm cuối
         }
