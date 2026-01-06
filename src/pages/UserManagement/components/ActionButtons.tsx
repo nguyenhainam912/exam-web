@@ -29,14 +29,14 @@ const ActionButtons = memo(({ record, onView, onEdit, onDelete }: ActionButtonsP
       style={BUTTON_STYLES.edit}
       onClick={() => onEdit(record)}
     />
-    <Popconfirm
+    {/* <Popconfirm
       title="Bạn có chắc muốn xóa?"
       onConfirm={() => onDelete(record._id)}
       okText="Xóa"
       cancelText="Hủy"
     >
       <Button danger title="Xóa" icon={<DeleteOutlined />} />
-    </Popconfirm>
+    </Popconfirm> */}
   </>
 ));
 
